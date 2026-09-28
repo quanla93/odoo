@@ -1,0 +1,2160 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* bhs_sendgrid_mailer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-24 03:11+0000\n"
+"PO-Revision-Date: 2026-09-24 03:11+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.module.module,description:base.module_bhs_sendgrid_mailer
+msgid ""
+"# BHSoft SendGrid Mailer\n"
+"\n"
+"## Overview\n"
+"\n"
+"`bhs_sendgrid_mailer` is a custom Odoo module for importing and processing bulk email through SendGrid. It provides a managed queue, randomized cumulative delays, delivery-status synchronization, duplicate filtering, and cancellation of scheduled messages.\n"
+"\n"
+"The module replaces the previous n8n and Google Sheets workflow so that imported data and delivery state remain available in Odoo.\n"
+"\n"
+"## Workflow\n"
+"\n"
+"### 1. Import recipients\n"
+"\n"
+"Use the **Import Excel File** wizard to load recipient data. The system recognizes English and Vietnamese headers for the recipient name, email, subject, body, and company. Each imported row receives a UUID and an import Batch ID.\n"
+"\n"
+"### 2. Validate and deduplicate\n"
+"\n"
+"Email addresses are validated during import and again before sending. Invalid addresses are marked as failed. When batch deduplication is enabled, repeated recipient addresses within the same import are marked as duplicate and are not sent.\n"
+"\n"
+"### 3. Process the outgoing queue\n"
+"\n"
+"The scheduled queue job processes a configurable number of pending messages per run. For every message, it adds a random delay between the configured minimum and maximum. These delays are cumulative, so the messages are scheduled at separate times.\n"
+"\n"
+"When a SendGrid API key is configured, the message is submitted directly to SendGrid with `send_at` and a SendGrid Batch ID. Without an API key, the module falls back to the Odoo mail queue.\n"
+"\n"
+"### 4. Synchronize status\n"
+"\n"
+"Odoo mail state can be synchronized by a scheduled job. Detailed SendGrid events can be received through the Event Webhook, queried through the SendGrid Activity API, or collected through both methods. Supported event states include processed, delivered, opened, clicked, bounced, dropped, and spam reports.\n"
+"\n"
+"Scheduled SendGrid messages with a Batch ID can be cancelled before their send time.\n"
+"\n"
+"## Configuration\n"
+"\n"
+"Administrators can configure:\n"
+"\n"
+"- the SendGrid API key and sender email;\n"
+"- webhook and API polling status updates;\n"
+"- the API polling interval and lookback period;\n"
+"- duplicate filtering for each import batch;\n"
+"- scheduled queue processing and Odoo status synchronization;\n"
+"- batch size;\n"
+"- minimum and maximum delay between messages.\n"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_import_form
+msgid ""
+"* The Excel file must have a header row. The system automatically recognizes these columns:<br/>\n"
+"                    <b>Contact, Email, Subject, Body, HubSpot ID, LinkedIn, Company, Company Website</b>.<br/>\n"
+"                    The template may also contain <b>No., Sending Status, Sent date, Sent time</b>; these operational columns are ignored during import.<br/>\n"
+"                    * Each imported row receives a unique UUID. When batch deduplication is enabled, only the first row for an email remains pending; later rows with the same normalized email are marked <b>Duplicate / Skipped</b> and are not sent."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"<em>\n"
+"                                    Copy the URL above and configure it in <b>SendGrid &gt; Settings &gt; Mail Settings &gt; Event Webhook</b>.<br/>\n"
+"                                    Recommended events: <b>Processed, Delivered, Open, Click, Bounced, Dropped, Spam Reports</b>.\n"
+"                                </em>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"<span class=\"text-success\" invisible=\"not google_credentials_configured\">✓ Google credentials are configured</span>\n"
+"                                <span class=\"text-muted\" invisible=\"google_credentials_configured\">Not configured</span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"<span class=\"text-success\" invisible=\"not sendgrid_api_key_configured\">✓ API key is configured</span>\n"
+"                                <span class=\"text-muted\" invisible=\"sendgrid_api_key_configured\">Not configured</span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"<span class=\"text-success\" invisible=\"not sendgrid_webhook_public_key_configured\">✓ Verification key is configured</span>\n"
+"                                <span class=\"text-muted\" invisible=\"sendgrid_webhook_public_key_configured\">Verification key is not configured</span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "<span class=\"text-success\">Last received:</span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "<span invisible=\"not google_project_id\"> — Project: </span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "<span invisible=\"not sendgrid_last_webhook_events\"> — </span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "<span>Service account: </span>"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_event__source__api
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__tracking_mode__api
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__res_config_settings__sendgrid_tracking_mode__api
+msgid "API Polling"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "API Polling Interval"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_polling_interval
+msgid "API Polling Interval (minutes)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__api_sync_log
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "API Sync History"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_needaction
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__active
+msgid "Active"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__actual_sent_time
+msgid "Actual Send Time"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_all
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_all
+msgid "All Messages"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_search
+msgid "Archived"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_attachment_count
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_attachment_count
+msgid "Attachment Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_search
+msgid "Automatic"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_root
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "BHSoft Mailer"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.module.module,shortdesc:base.module_bhs_sendgrid_mailer
+msgid "BHSoft SendGrid Mailer"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.ir_cron_sync_google_sheets_ir_actions_server
+msgid "BHSoft: Import Google Sheets Sources"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.ir_cron_process_bhsoft_mail_queue_ir_actions_server
+msgid "BHSoft: Process Outgoing Mail Queue (30 messages per batch)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.ir_cron_sync_bhsoft_mail_queue_ir_actions_server
+msgid "BHSoft: Synchronize Odoo Mail Status"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.ir_cron_sync_sendgrid_activity_ir_actions_server
+msgid "BHSoft: Synchronize SendGrid Status via API"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sendgrid_batch_id
+msgid "Batch ID used to cancel a scheduled SendGrid message"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Batch Size"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__body_header
+msgid "Body Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Body is required."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__bounced
+msgid "Bounce"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_mail_queue
+msgid "Bulk Email Queue"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_import_form
+msgid "Cancel"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.action_mail_queue_cancel_scheduled
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_tree
+msgid "Cancel Scheduled"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Cancel Scheduled Emails"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Cancellation"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__cancel_error
+msgid "Cancellation Error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__cancelled
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Cancelled"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__cancelled_at
+msgid "Cancelled At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__cancelled_by
+msgid "Cancelled By"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"Cancelled: %(cancelled)s. Already sent or not cancellable: %(skipped)s. "
+"Failed: %(failed)s."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Check mail.mail to update queue status (sent or failed). This job runs "
+"periodically, not continuously; select 1 minute for faster updates. It does "
+"not call the SendGrid API."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Clear API Key"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Clear Credentials"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Clear Verification Key"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__clicked
+msgid "Clicked"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Column Mapping"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__range_columns
+msgid "Column Range"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid "Column Range must use A1 column notation, for example A:M."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__range_columns
+msgid "Column range containing headers and data, for example A:I."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__company_name
+msgid "Company"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__company_header
+msgid "Company Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__company_website
+msgid "Company Website"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__company_website_header
+msgid "Company Website Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__conflict
+msgid "Conflict"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__conflict_count
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__conflict_count
+msgid "Conflict Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_line_search
+msgid "Conflicts"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid "Connected to \"%(title)s\" as %(email)s."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Connected to SendGrid as %(account)s."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid "Connection succeeded, but sheet \"%(sheet)s\" was not found."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid "Connection succeeded, but the configured range is empty."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__contact_header
+msgid "Contact Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__content_hash
+msgid "Content Hash"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_webhook_url
+msgid "Copy this URL into the SendGrid Event Webhook settings"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__created
+msgid "Created"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__created_count
+msgid "Created Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__create_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__create_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__create_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__create_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__create_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__create_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__create_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__create_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__create_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__create_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__create_date
+msgid "Created on"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Credentials are valid for %(email)s in project %(project)s."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid "Customer"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__res_config_settings__sendgrid_dedupe_mode__batch_email
+msgid "Deduplicate emails within each import"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_dedupe_mode
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Deduplication Mode"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__delivered
+msgid "Delivered"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__res_config_settings__sendgrid_tracking_mode__off
+msgid "Disable Tracking"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Disable webhook status updates before clearing the verification key."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Disable webhook status updates first, then remove the stored verification "
+"key?"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__display_name
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__display_name
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__display_name
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__display_name
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__display_name
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__display_name
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__res_config_settings__sendgrid_dedupe_mode__none
+msgid "Do not deduplicate"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__dropped
+msgid "Dropped"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__duplicate
+msgid "Duplicate"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_duplicates
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__duplicate
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_duplicates
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Duplicate / Skipped"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__duplicate_count
+msgid "Duplicate Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Duplicate Google Sheets headers: %(headers)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__duplicate_of_id
+msgid "Duplicate Of"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_line_search
+msgid "Duplicates"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__email
+msgid "Email"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__body_html
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Email Body"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__email_header
+msgid "Email Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Email is required."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Enable API Polling"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_polling_active
+msgid "Enable API Polling Job"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__auto_sync
+msgid "Enable Automatic Synchronization"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_active
+msgid "Enable Mail Sending Job"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Enable Scheduled Sending"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Enter a Google Service Account JSON before testing the connection."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Enter a SendGrid API Key before testing the connection."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__error
+msgid "Error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__error_count
+msgid "Error Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__error_message
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Error Details"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__error_message
+msgid "Error Message"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Error while calling the SendGrid Activity API: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_line_search
+msgid "Errors"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__event_key
+msgid "Event Key"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__event_time
+msgid "Event Time"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__event_type
+msgid "Event Type"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__file
+msgid "Excel File (.xlsx)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_mail_queue_import_wizard
+msgid "Excel Mail Queue Import Wizard"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_row_number
+msgid "Excel Row"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_run__state__failed
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__failed
+msgid "Failed"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Failed / Review"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Failed to send through Odoo SMTP"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__failure_count
+msgid "Failure Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__file_name
+msgid "File Name"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Filter duplicate recipients within the same import batch"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__finished_at
+msgid "Finished At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_follower_ids
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_follower_ids
+msgid "Followers"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_partner_ids
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__google_credentials_configured
+msgid "Google Credentials Configured"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__google_project_id
+msgid "Google Project"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__google_project_id
+msgid "Google Project ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Google Service Account"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__google_service_account_email
+msgid "Google Service Account Email"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid ""
+"Google Service Account JSON is not configured in BHSoft Mailer Settings."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sheet_row_number
+msgid "Google Sheet Row"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sheet_source_id
+msgid "Google Sheet Source"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_google_sheet_sources
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_google_sheet_sources
+msgid "Google Sheet Sources"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid "Google Sheets API error: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid "Google Sheets Connection"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Google Sheets Credentials"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_google_sheet_source
+msgid "Google Sheets Mail Source"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_google_sheet_sync_errors
+msgid "Google Sheets Row Results"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py:0
+msgid "Google Sheets Sync Run"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_google_sheet_sync_runs
+msgid "Google Sheets Sync Runs"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_google_sheet_sync_line
+msgid "Google Sheets Synchronization Row Result"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_google_sheet_sync_run
+msgid "Google Sheets Synchronization Run"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid ""
+"Google Sheets dependencies are not installed. Install google-auth and "
+"google-api-python-client, then restart Odoo."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Group by Batch"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_line_search
+msgid "Group by Result"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Group by SendGrid Event"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_line_search
+msgid "Group by Source"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Group by Status"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_search
+msgid "Has Errors"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__has_message
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__header_row
+msgid "Header Row"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_history
+msgid "History"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "How to Test Webhook"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__hubspot_id
+msgid "HubSpot ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__hubspot_id_header
+msgid "Hubspot Id Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__id
+msgid "ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sendgrid_msg_id
+msgid "ID returned by the SendGrid API for status lookup"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_needaction
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_has_error
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_has_sms_error
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_has_error
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__import_batch_id
+msgid "Import Batch ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_import_form
+msgid "Import Data"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_import_form
+msgid "Import Data from Excel"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Import Deduplication"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_import
+msgid "Import Excel File"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_row_uuid
+msgid "Import Row UUID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_import
+msgid "Import from Excel"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Invalid email format (Spam/Invalid)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Invalid email format: %(email)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_is_follower
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__last_sendgrid_sync_time
+msgid "Last API Sync"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__last_error
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Last Error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__last_sendgrid_event_time
+msgid "Last Event Time"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__last_sendgrid_event
+msgid "Last SendGrid Event"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__last_success_at
+msgid "Last Success At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__last_sync_at
+msgid "Last Sync At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sync_run_id
+msgid "Last Sync Run"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__write_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__write_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__write_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__write_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__write_uid
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__write_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__write_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__write_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__write_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__write_date
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_last_webhook_events
+msgid "Last Webhook Events"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_last_webhook_received_at
+msgid "Last Webhook Received"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__line_ids
+msgid "Line"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__linkedin_url
+msgid "LinkedIn"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__linkedin_header
+msgid "Linkedin Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_polling_window_days
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Lookback Period (days)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid "Mail Queue"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.module.module,summary:base.module_bhs_sendgrid_mailer
+msgid "Manage a bulk email queue through SendGrid with randomized delays"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_delay_max
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Maximum Delay (seconds)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Maximum delay between successive messages"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Maximum number of messages scheduled per run"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__message
+msgid "Message"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_has_error
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_ids
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_ids
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Messages"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_batch_size
+msgid "Messages per Batch"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Messages per Batch must be greater than zero."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_delay_min
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Minimum Delay (seconds)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Minimum delay between successive messages"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Minutes between SendGrid API status updates"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Minutes between outgoing queue runs"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_missing
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Missing From Source"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Missing required Google Sheets columns: %(headers)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Missing the \"%(header)s\" column. Add it before enabling synchronization."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__name
+msgid "Name"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__google_service_account_json
+msgid "New Google Service Account JSON"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_key
+msgid "New SendGrid API Key"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_webhook_public_key
+msgid "New SendGrid Webhook Verification Key"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__next_sync_at
+msgid "Next Sync At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__normalized_email
+msgid "Normalized Email"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_needaction_counter
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_has_error_counter
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_needaction_counter
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_has_error_counter
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sheet_row_id
+msgid "Odoo Row ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_mail_queue_sheet_row_unique
+msgid "Odoo Row ID must be unique within each Google Sheet source."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_sync_interval
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Odoo Status Sync Interval (minutes)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__tracking_mode__off
+msgid "Off"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Only synchronize emails created within this period"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__opened
+msgid "Opened"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__mail_id
+msgid "Original Odoo Mail"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__mail_id
+msgid "Original mail record managed by Odoo"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_pending
+msgid "Outgoing Queue"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_run__state__partial
+msgid "Partial Success"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Paste a new API key to connect or replace"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Paste a new verification key to connect or replace"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Paste new Service Account JSON to connect or replace"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__none
+msgid "Pending"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Periodically query the SendGrid Activity API when a public webhook is "
+"unavailable"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid "Please select an Excel file."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Pre-send error: Invalid email format (Spam/Invalid)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Pre-send error: Sender Email is required when using SendGrid."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"Pre-send error: the delay range is invalid. Minimum Delay must be zero or "
+"greater and cannot exceed Maximum Delay."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Process the outgoing queue periodically"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__processing
+msgid "Processing"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__unknown
+msgid "Provider Outcome Unknown"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__queue_ids
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__queue_id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__queue_id
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_pending
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Queue"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__queue_count
+msgid "Queue Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__reason
+msgid "Reason"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__name
+msgid "Recipient"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__email_to
+msgid "Recipient Email"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Recipient Name"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Remove the stored Google Service Account credential?"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Remove the stored SendGrid API Key?"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__result
+msgid "Result"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_tree
+msgid "Retry"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Retry Sending"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__row_id
+msgid "Row"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__row_id_header
+msgid "Row Id Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__row_number
+msgid "Row Number"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__run_id
+msgid "Run"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_run_form
+msgid "Run Error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_run__state__running
+msgid "Running"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__message_has_sms_error
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Sales Outreach Sheet"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Schedule"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__queued
+msgid "Scheduled"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Scheduled Jobs and Queue"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__scheduled_send_time
+msgid "Scheduled Send Time"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Scheduled job intervals must be greater than zero minutes."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Send Emails"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.action_mail_queue_send_now
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_tree
+msgid "Send Now"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "SendGrid API Key"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_key_configured
+msgid "SendGrid API Key Configured"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "SendGrid API Key is not configured."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "SendGrid API error %(status)s: %(response)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "SendGrid Activity API error %(status)s: %(response)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "SendGrid Batch API error %(status)s: %(response)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sendgrid_batch_id
+msgid "SendGrid Batch ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "SendGrid Cancel API error %(status)s: %(response)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "SendGrid Configuration"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid Connection"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_mail_event
+msgid "SendGrid Mail Event"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_sendgrid_config_settings
+msgid "SendGrid Mailer Settings"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sendgrid_msg_id
+msgid "SendGrid Message ID"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__sendgrid_status
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "SendGrid Status"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "SendGrid Status Updates"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid Webhook"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_webhook_url
+msgid "SendGrid Webhook URL"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "SendGrid event: %(event)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"SendGrid event: %(event)s\n"
+"Reason: %(reason)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid rejected the API Key (HTTP %(status)s)."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_sender
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Sender Email"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Sender Email is required when a SendGrid API Key is configured."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_history
+msgid "Sending History"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_interval
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Sending Interval (minutes)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__sent
+msgid "Sent"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Sent / Engaged"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__service_account_email
+msgid "Service Account Email"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Service Account JSON"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_settings
+msgid "Settings"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__sheet_name
+msgid "Sheet Name"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_google_sheet_sync_errors
+msgid "Sheet Row Results"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_google_sheet_sync_runs
+msgid "Sheet Sync Runs"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__skipped
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__skipped
+msgid "Skipped"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid ""
+"Skipped because the same email and content already exist in this Google "
+"Sheet source."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid "Skipped because this email is duplicated within this import: %(email)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__source_id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__source_id
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__source
+msgid "Source"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_conflict
+msgid "Source Conflict"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_conflict_message
+msgid "Source Conflict Message"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
+msgid "Source Conflicts"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Source Data"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_hash
+msgid "Source Hash"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__source_synced_at
+msgid "Source Synchronized At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__spamreport
+msgid "Spam Report"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__spreadsheet_id
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Spreadsheet"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__started_at
+msgid "Started At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__state
+msgid "State"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__status
+msgid "Status"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_tracking_mode
+msgid "Status Update Mode"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__api_sync_log
+msgid "Stores status synchronization history from the SendGrid API"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_mail_queue__webhook_log
+msgid "Stores update history received from the SendGrid webhook"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__subject
+msgid "Subject"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__subject_header
+msgid "Subject Header"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "Subject is required."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"Submitted: %(submitted)s. Already processed or not sendable: %(skipped)s."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_run__state__success
+msgid "Success"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__sync_interval_minutes
+msgid "Sync Interval Minutes"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Sync Now"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_tree
+msgid "Sync Odoo Status"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__sync_run_ids
+msgid "Sync Run"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__sync_run_count
+msgid "Sync Run Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Sync Runs"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_tree
+msgid "Sync SendGrid API"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid "Test Connection"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid ""
+"The Excel file is missing required columns. It must contain at least "
+"\"Email\" and \"Subject\" columns."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid "The Google Service Account JSON is invalid: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "The Google Service Account credential has been cleared."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid "The Google credential must be a Service Account JSON document."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "The Odoo Row ID is duplicated in rows %(rows)s."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "The SendGrid API Key has been cleared."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "The SendGrid API Key is not configured for API status synchronization."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "The SendGrid Activity API has no new events for this message."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"The SendGrid Activity API is inaccessible or unsupported by the account plan"
+" (HTTP %(status)s)."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "The SendGrid Activity API returned data without a valid event."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "The SendGrid Batch API did not return a Batch ID."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "The SendGrid Webhook Verification Key has been cleared."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid ""
+"The SendGrid Webhook Verification Key is required when webhook status "
+"updates are enabled."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "The SendGrid lookback period must be greater than zero days."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"The SendGrid request outcome is unknown because the connection timed out or "
+"failed. Do not retry until the provider activity has been reconciled."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid "The Service Account JSON is missing client_email or private_key."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid ""
+"The Sheet row changed after the message left Pending. The submitted content "
+"was preserved."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid ""
+"The configured range has no empty column for \"%(header)s\". Extend Column "
+"Range or add the column manually."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "The configured sheet is empty."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid ""
+"The delay range is invalid. Minimum Delay must be zero or greater and cannot"
+" exceed Maximum Delay."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_google_sheet_source_positive_header_row
+msgid "The header row must be greater than zero."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "The message was not found in the SendGrid Activity API."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid ""
+"The openpyxl library is not installed. Please install it on the server."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"The saved JSON and private key are never displayed again. Leave this field "
+"empty to keep the current credential."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"The saved key is never displayed again. Leave this field empty to keep the "
+"current key."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_google_sheet_source_positive_sync_interval
+msgid "The synchronization interval must be greater than zero."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid ""
+"The webhook now requires a real SendGrid signature. Use SendGrid Event "
+"Webhook settings to send a signed test event."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_mail_event_event_key_unique
+msgid "This SendGrid event has already been processed."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"This scheduled message was created without a SendGrid Batch ID and cannot be"
+" cancelled remotely."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+msgid "This source is already being synchronized."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__total_count
+msgid "Total Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__tracking_mode
+msgid "Tracking Mode"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid "Unable to authenticate the Google Service Account: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Unable to connect to SendGrid: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py:0
+msgid "Unable to initialize Google Sheets credentials: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid ""
+"Unable to read the Excel file. Please ensure it is a valid .xlsx file.\n"
+"Error details: %(error)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__unchanged
+msgid "Unchanged"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__unchanged_count
+msgid "Unchanged Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Unknown"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Unknown time"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Update Mode"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_line__result__updated
+msgid "Updated"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__updated_count
+msgid "Updated Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Use this URL as the HTTP POST endpoint for SendGrid Event Webhook"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Use this email as the default sender (e.g. no-reply@bhsoft.com)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Validate Credentials"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_event__source__webhook
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__tracking_mode__webhook
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__res_config_settings__sendgrid_tracking_mode__webhook
+msgid "Webhook"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__tracking_mode__both
+msgid "Webhook + API"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__res_config_settings__sendgrid_tracking_mode__both
+msgid "Webhook + API Polling"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__webhook_log
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "Webhook History"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Webhook URL"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_webhook_public_key_configured
+msgid "Webhook Verification Key Configured"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Webhooks require a public domain. API polling also works on localhost."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "[%(time)s] %(message)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "[%(time)s] %(source)s event: %(event)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "[%(time)s] %(source)s event: %(event)s - Reason: %(reason)s"
+msgstr ""

@@ -1,0 +1,10 @@
+id,name,model_id,group_id/id,operation,domain
+access_bhsoft_mail_queue_user,bhsoft.mail.queue.user,bhsoft.mail.queue,base.group_user,crud,
+access_bhsoft_mail_queue_import_wizard,bhsoft.mail.queue.import.wizard,bhsoft.mail.queue.import.wizard,base.group_user,crud,
+access_bhsoft_google_sheet_source_admin,bhsoft.google.sheet.source.admin,bhsoft.google.sheet.source,base.group_system,crud,
+access_bhsoft_google_sheet_sync_run_admin,bhsoft.google.sheet.sync.run.admin,bhsoft.google.sheet.sync.run,base.group_system,crud,
+access_bhsoft_google_sheet_sync_line_admin,bhsoft.google.sheet.sync.line.admin,bhsoft.google.sheet.sync.line,base.group_system,crud,
+access_bhsoft_google_sheet_sync_run_user,bhsoft.google.sheet.sync.run.user,bhsoft.google.sheet.sync.run,base.group_user,r,
+access_bhsoft_google_sheet_sync_line_user,bhsoft.google.sheet.sync.line.user,bhsoft.google.sheet.sync.line,base.group_user,r,
+access_bhsoft_mail_event_admin,bhsoft.mail.event.admin,bhsoft.mail.event,base.group_system,crud,
+access_bhsoft_mail_event_user,bhsoft.mail.event.user,bhsoft.mail.event,base.group_user,r,

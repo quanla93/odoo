@@ -1,4 +1,10 @@
-# Odoo
+# Odoo 20 — BHSoft Fork
+
+This is BHSoft's Odoo 20 fork, maintained at [quanla93/odoo](https://github.com/quanla93/odoo). BHSoft addons live in `bhs_addons/` and use the `bhs_` technical-name prefix. The development stack uses PostgreSQL 16. See [BHSOFT.md](BHSOFT.md) for repository setup, Docker usage, and addon installation.
+
+The upstream Odoo project information follows.
+
+## Odoo
 
 [![Build Status](https://runbot.odoo.com/runbot/badge/flat/1/master.svg)](https://runbot.odoo.com/runbot)
 [![Tech Doc](https://img.shields.io/badge/master-docs-875A7B.svg?style=flat&colorA=8F8F8F)](https://www.odoo.com/documentation/master)

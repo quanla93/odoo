@@ -1,0 +1,1877 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * bhs_sendgrid_mailer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-24 02:35+0000\n"
+"PO-Revision-Date: 2026-09-24 02:35+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.10.3\n"
+
+#. module: bhs_sendgrid_mailer
+msgid ""
+"# BHSoft SendGrid Mailer\n"
+"\n"
+"## Overview\n"
+"\n"
+"`bhs_sendgrid_mailer` is a custom Odoo module for importing and "
+"processing bulk email through SendGrid. It provides a managed queue, "
+"randomized cumulative delays, delivery-status synchronization, duplicate "
+"filtering, and cancellation of scheduled messages.\n"
+"\n"
+"The module replaces the previous n8n and Google Sheets workflow so that "
+"imported data and delivery state remain available in Odoo.\n"
+"\n"
+"## Workflow\n"
+"\n"
+"### 1. Import recipients\n"
+"\n"
+"Use the **Import Excel File** wizard to load recipient data. The system "
+"recognizes English and Vietnamese headers for the recipient name, email, "
+"subject, body, and company. Each imported row receives a UUID and an import "
+"Batch ID.\n"
+"\n"
+"### 2. Validate and deduplicate\n"
+"\n"
+"Email addresses are validated during import and again before sending. "
+"Invalid addresses are marked as failed. When batch deduplication is enabled,"
+" repeated recipient addresses within the same import are marked as duplicate"
+" and are not sent.\n"
+"\n"
+"### 3. Process the outgoing queue\n"
+"\n"
+"The scheduled queue job processes a configurable number of pending messages "
+"per run. For every message, it adds a random delay between the configured "
+"minimum and maximum. These delays are cumulative, so the messages are "
+"scheduled at separate times.\n"
+"\n"
+"When a SendGrid API key is configured, the message is submitted directly to "
+"SendGrid with `send_at` and a SendGrid Batch ID. Without an API key, the "
+"module falls back to the Odoo mail queue.\n"
+"\n"
+"### 4. Synchronize status\n"
+"\n"
+"Odoo mail state can be synchronized by a scheduled job. Detailed SendGrid "
+"events can be received through the Event Webhook, queried through the "
+"SendGrid Activity API, or collected through both methods. Supported event "
+"states include processed, delivered, opened, clicked, bounced, dropped, and "
+"spam reports.\n"
+"\n"
+"Scheduled SendGrid messages with a Batch ID can be cancelled before their "
+"send time.\n"
+"\n"
+"## Configuration\n"
+"\n"
+"Administrators can configure:\n"
+"\n"
+"- the SendGrid API key and sender email;\n"
+"- webhook and API polling status updates;\n"
+"- the API polling interval and lookback period;\n"
+"- duplicate filtering for each import batch;\n"
+"- scheduled queue processing and Odoo status synchronization;\n"
+"- batch size;\n"
+"- minimum and maximum delay between messages.\n"
+msgstr "# Tài liệu Tổng hợp Module `bhs_sendgrid_mailer`\n"
+
+#. module: bhs_sendgrid_mailer
+msgid ""
+"* The Excel file must have a header row. The system automatically recognizes"
+" these columns:<br/>\n"
+"                    <b>Contact, Email, Subject, Body, HubSpot ID, LinkedIn, "
+"Company, Company Website</b>.<br/>\n"
+"                    The template may also contain <b>No., Sending Status, "
+"Sent date, Sent time</b>; these operational columns are ignored during "
+"import.<br/>\n"
+"                    * Each imported row receives a unique UUID. When batch "
+"deduplication is enabled, only the first row for an email remains pending; "
+"later rows with the same normalized email are marked <b>Duplicate / "
+"Skipped</b> and are not sent."
+msgstr ""
+"* Tệp Excel phải có dòng tiêu đề. Hệ thống tự động nhận diện các cột "
+"sau:<br/>\n"
+"                    <b>Liên hệ, Email, Tiêu đề, Nội dung, HubSpot ID, "
+"LinkedIn, Công ty, Website công ty</b>.<br/>\n"
+"                    Mẫu cũng có thể chứa các cột <b>STT, Trạng thái gửi, "
+"Ngày gửi, Giờ gửi</b>; các cột vận hành này sẽ bị bỏ qua khi nhập.<br/>\n"
+"                    * Mỗi dòng được nhập nhận một UUID duy nhất. Khi bật lọc"
+" trùng theo lô, chỉ dòng đầu tiên của mỗi email ở trạng thái chờ gửi; các "
+"dòng sau có cùng email chuẩn hóa được đánh dấu <b>Trùng / Bỏ qua</b> và "
+"không được gửi."
+
+#. module: bhs_sendgrid_mailer
+msgid ""
+"<em>\n"
+"                                    Copy the URL above and configure it in "
+"<b>SendGrid &gt; Settings &gt; Mail Settings &gt; Event Webhook</b>.<br/>\n"
+"                                    Recommended events: <b>Processed, "
+"Delivered, Open, Click, Bounced, Dropped, Spam Reports</b>.\n"
+"                                </em>"
+msgstr ""
+"<em>\n"
+"                                    Sao chép URL ở trên và cấu hình tại "
+"<b>SendGrid &gt; Settings &gt; Mail Settings &gt; Event Webhook</b>.<br/>\n"
+"                                    Các sự kiện nên chọn: <b>Processed, "
+"Delivered, Open, Click, Bounced, Dropped, Spam Reports</b>.\n"
+"                                </em>"
+
+#. module: bhs_sendgrid_mailer
+msgid "<span class=\"text-success\">Last received:</span>"
+msgstr "<span class=\"text-success\">Lần nhận gần nhất:</span>"
+
+#. module: bhs_sendgrid_mailer
+msgid "<span invisible=\"not google_project_id\"> — Project: </span>"
+msgstr "<span invisible=\"not google_project_id\"> — Dự án: </span>"
+
+#. module: bhs_sendgrid_mailer
+msgid "<span invisible=\"not sendgrid_last_webhook_events\"> — </span>"
+msgstr "<span invisible=\"not sendgrid_last_webhook_events\"> — </span>"
+
+#. module: bhs_sendgrid_mailer
+msgid "<span>Service account: </span>"
+msgstr "<span>Tài khoản dịch vụ: </span>"
+
+#. module: bhs_sendgrid_mailer
+msgid "API Polling"
+msgstr "Thăm dò API"
+
+#. module: bhs_sendgrid_mailer
+msgid "API Polling Interval"
+msgstr "Chu kỳ API Polling"
+
+#. module: bhs_sendgrid_mailer
+msgid "API Polling Interval (minutes)"
+msgstr "Chu kỳ API Polling (phút)"
+
+#. module: bhs_sendgrid_mailer
+msgid "API Sync History"
+msgstr "Lịch sử đồng bộ API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Action Needed"
+msgstr "Cần xử lý"
+
+#. module: bhs_sendgrid_mailer
+msgid "Active"
+msgstr "Đang hoạt động"
+
+#. module: bhs_sendgrid_mailer
+msgid "Actual Send Time"
+msgstr "Giờ gửi thực tế"
+
+#. module: bhs_sendgrid_mailer
+msgid "All Messages"
+msgstr "Tất cả danh sách"
+
+#. module: bhs_sendgrid_mailer
+msgid "Archived"
+msgstr "Đã lưu trữ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Attachment Count"
+msgstr "Số lượng tệp đính kèm"
+
+#. module: bhs_sendgrid_mailer
+msgid "Automatic"
+msgstr "Tự động"
+
+#. module: bhs_sendgrid_mailer
+msgid "BHSoft Mailer"
+msgstr "BHSoft Mailer"
+
+#. module: bhs_sendgrid_mailer
+msgid "BHSoft SendGrid Mailer"
+msgstr "BHSoft SendGrid Mailer"
+
+#. module: bhs_sendgrid_mailer
+msgid "BHSoft: Import Google Sheets Sources"
+msgstr "BHSoft: Nhập dữ liệu từ các nguồn Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "BHSoft: Process Outgoing Mail Queue (30 messages per batch)"
+msgstr "BHSoft: Xử lý hàng đợi gửi email (30 email mỗi lô)"
+
+#. module: bhs_sendgrid_mailer
+msgid "BHSoft: Synchronize Odoo Mail Status"
+msgstr "BHSoft: Đồng bộ trạng thái email Odoo"
+
+#. module: bhs_sendgrid_mailer
+msgid "BHSoft: Synchronize SendGrid Status via API"
+msgstr "BHSoft: Đồng bộ trạng thái SendGrid qua API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Batch ID used to cancel a scheduled SendGrid message"
+msgstr "Batch ID dùng để hủy email đã lên lịch trên SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "Batch Size"
+msgstr "Số lượng (Batch Size)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Body Header"
+msgstr "Tiêu đề cột Nội dung"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid "Body is required."
+msgstr "Nội dung là bắt buộc."
+
+#. module: bhs_sendgrid_mailer
+msgid "Bounce"
+msgstr "Bị trả lại"
+
+#. module: bhs_sendgrid_mailer
+msgid "Bulk Email Queue"
+msgstr "Hàng đợi gửi Email hàng loạt"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancel"
+msgstr "Hủy bỏ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancel Scheduled"
+msgstr "Hủy lịch gửi"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Cancel Scheduled Emails"
+msgstr "Hủy email đã lên lịch"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancellation"
+msgstr "Thông tin hủy"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancellation Error"
+msgstr "Lỗi hủy"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancelled"
+msgstr "Đã hủy"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancelled At"
+msgstr "Thời điểm hủy"
+
+#. module: bhs_sendgrid_mailer
+msgid "Cancelled By"
+msgstr "Người hủy"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid ""
+"Cancelled: %(cancelled)s. Already sent or not cancellable: %(skipped)s. "
+"Failed: %(failed)s."
+msgstr ""
+"Đã hủy: %(cancelled)s. Đã gửi hoặc không thể hủy: %(skipped)s. Lỗi: "
+"%(failed)s."
+
+#. module: bhs_sendgrid_mailer
+msgid ""
+"Check mail.mail to update queue status (sent or failed). This job runs "
+"periodically, not continuously; select 1 minute for faster updates. It does "
+"not call the SendGrid API."
+msgstr ""
+"Kiểm tra mail.mail để cập nhật trạng thái hàng đợi (đã gửi hoặc lỗi). Cron "
+"chạy định kỳ, không chạy liên tục; chọn 1 phút nếu muốn cập nhật nhanh hơn. "
+"Không gọi SendGrid API."
+
+#. module: bhs_sendgrid_mailer
+msgid "Clear Credentials"
+msgstr "Xóa thông tin xác thực"
+
+#. module: bhs_sendgrid_mailer
+msgid "Clicked"
+msgstr "Đã click"
+
+#. module: bhs_sendgrid_mailer
+msgid "Column Mapping"
+msgstr "Ánh xạ cột"
+
+#. module: bhs_sendgrid_mailer
+msgid "Column Range"
+msgstr "Phạm vi cột"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+msgid "Column Range must use A1 column notation, for example A:M."
+msgstr "Phạm vi cột phải dùng ký hiệu cột A1, ví dụ A:M."
+
+#. module: bhs_sendgrid_mailer
+msgid "Column range containing headers and data, for example A:I."
+msgstr "Phạm vi cột chứa tiêu đề và dữ liệu, ví dụ A:I."
+
+#. module: bhs_sendgrid_mailer
+msgid "Company"
+msgstr "Công ty"
+
+#. module: bhs_sendgrid_mailer
+msgid "Company Header"
+msgstr "Tiêu đề cột Công ty"
+
+#. module: bhs_sendgrid_mailer
+msgid "Company Website"
+msgstr "Website công ty"
+
+#. module: bhs_sendgrid_mailer
+msgid "Company Website Header"
+msgstr "Tiêu đề cột Website công ty"
+
+#. module: bhs_sendgrid_mailer
+msgid "Config Settings"
+msgstr "Cài đặt cấu hình"
+
+#. module: bhs_sendgrid_mailer
+msgid "Conflict"
+msgstr "Xung đột"
+
+#. module: bhs_sendgrid_mailer
+msgid "Conflict Count"
+msgstr "Số xung đột"
+
+#. module: bhs_sendgrid_mailer
+msgid "Conflicts"
+msgstr "Xung đột"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+#, python-format
+msgid "Connected to \"%(title)s\" as %(email)s."
+msgstr "Đã kết nối tới \"%(title)s\" bằng tài khoản %(email)s."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+#, python-format
+msgid "Connection succeeded, but sheet \"%(sheet)s\" was not found."
+msgstr "Kết nối thành công nhưng không tìm thấy trang tính \"%(sheet)s\"."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+msgid "Connection succeeded, but the configured range is empty."
+msgstr "Kết nối thành công nhưng phạm vi đã cấu hình đang trống."
+
+#. module: bhs_sendgrid_mailer
+msgid "Contact Header"
+msgstr "Tiêu đề cột Liên hệ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Content Hash"
+msgstr "Mã băm nội dung"
+
+#. module: bhs_sendgrid_mailer
+msgid "Copy this URL into the SendGrid Event Webhook settings"
+msgstr "Copy đường dẫn này dán vào cấu hình Event Webhook trên SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "Created"
+msgstr "Đã tạo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Created Count"
+msgstr "Số bản ghi đã tạo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Created by"
+msgstr "Người tạo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Created on"
+msgstr "Ngày tạo"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+#, python-format
+msgid "Credentials are valid for %(email)s in project %(project)s."
+msgstr "Thông tin xác thực hợp lệ cho %(email)s trong dự án %(project)s."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+msgid "Customer"
+msgstr "Khách hàng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Deduplicate emails within each import"
+msgstr "Lọc trùng email trong cùng lần import"
+
+#. module: bhs_sendgrid_mailer
+msgid "Deduplication Mode"
+msgstr "Chế độ lọc trùng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Delivered"
+msgstr "Đã giao"
+
+#. module: bhs_sendgrid_mailer
+msgid "Disable Tracking"
+msgstr "Tắt tracking"
+
+#. module: bhs_sendgrid_mailer
+msgid "Display Name"
+msgstr "Tên hiển thị"
+
+#. module: bhs_sendgrid_mailer
+msgid "Do not deduplicate"
+msgstr "Không lọc trùng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Dropped"
+msgstr "Bị từ chối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Duplicate"
+msgstr "Trùng lặp"
+
+#. module: bhs_sendgrid_mailer
+msgid "Duplicate / Skipped"
+msgstr "Trùng / Bỏ qua"
+
+#. module: bhs_sendgrid_mailer
+msgid "Duplicate Count"
+msgstr "Số bản ghi trùng"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#, python-format
+msgid "Duplicate Google Sheets headers: %(headers)s"
+msgstr "Các tiêu đề Google Sheets bị trùng: %(headers)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "Duplicate Of"
+msgstr "Trùng với dòng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Duplicates"
+msgstr "Bản ghi trùng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Email"
+msgstr "Email"
+
+#. module: bhs_sendgrid_mailer
+msgid "Email Body"
+msgstr "Nội dung Email"
+
+#. module: bhs_sendgrid_mailer
+msgid "Email Header"
+msgstr "Tiêu đề cột Email"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid "Email is required."
+msgstr "Email là bắt buộc."
+
+#. module: bhs_sendgrid_mailer
+msgid "Enable API Polling"
+msgstr "Bật API Polling"
+
+#. module: bhs_sendgrid_mailer
+msgid "Enable API Polling Job"
+msgstr "Bật Cron API Polling"
+
+#. module: bhs_sendgrid_mailer
+msgid "Enable Automatic Synchronization"
+msgstr "Bật đồng bộ tự động"
+
+#. module: bhs_sendgrid_mailer
+msgid "Enable Mail Sending Job"
+msgstr "Kích hoạt Cronjob Gửi Mail"
+
+#. module: bhs_sendgrid_mailer
+msgid "Enable Scheduled Sending"
+msgstr "Bật/Tắt Cronjob"
+
+#. module: bhs_sendgrid_mailer
+msgid "Error"
+msgstr "Lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Error Count"
+msgstr "Số lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Error Details"
+msgstr "Chi tiết lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Error Message"
+msgstr "Thông báo lỗi"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "Error while calling the SendGrid Activity API: %(error)s"
+msgstr "Lỗi khi gọi SendGrid Activity API: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "Errors"
+msgstr "Lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Event Key"
+msgstr "Khóa sự kiện"
+
+#. module: bhs_sendgrid_mailer
+msgid "Event Time"
+msgstr "Thời gian sự kiện"
+
+#. module: bhs_sendgrid_mailer
+msgid "Event Type"
+msgstr "Loại sự kiện"
+
+#. module: bhs_sendgrid_mailer
+msgid "Excel File (.xlsx)"
+msgstr "Tệp Excel (.xlsx)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Excel Mail Queue Import Wizard"
+msgstr "Trình nhập hàng đợi email từ Excel"
+
+#. module: bhs_sendgrid_mailer
+msgid "Excel Row"
+msgstr "Dòng Excel"
+
+#. module: bhs_sendgrid_mailer
+msgid "Failed"
+msgstr "Lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Failed / Review"
+msgstr "Lỗi / Cần kiểm tra"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Failed to send through Odoo SMTP"
+msgstr "Không thể gửi qua SMTP Odoo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Failure Count"
+msgstr "Số lần thất bại"
+
+#. module: bhs_sendgrid_mailer
+msgid "File Name"
+msgstr "Tên tệp"
+
+#. module: bhs_sendgrid_mailer
+msgid "Filter duplicate recipients within the same import batch"
+msgstr ""
+"Khuyến nghị lọc trùng email trong cùng lần import để tránh một người nhận "
+"nhiều thư giống nhau"
+
+#. module: bhs_sendgrid_mailer
+msgid "Finished At"
+msgstr "Kết thúc lúc"
+
+#. module: bhs_sendgrid_mailer
+msgid "Followers"
+msgstr "Người theo dõi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Followers (Partners)"
+msgstr "Người theo dõi (Đối tác)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Project"
+msgstr "Dự án Google"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Project ID"
+msgstr "ID dự án Google"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "Google Service Account"
+msgstr "Tài khoản dịch vụ Google"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Service Account Email"
+msgstr "Email tài khoản dịch vụ Google"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Service Account JSON"
+msgstr "JSON tài khoản dịch vụ Google"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+msgid "Google Service Account JSON is not configured in BHSoft Mailer Settings."
+msgstr "Chưa cấu hình JSON tài khoản dịch vụ Google trong Cài đặt BHSoft Mailer."
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheet Row"
+msgstr "Dòng Google Sheet"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheet Source"
+msgstr "Nguồn Google Sheet"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheet Sources"
+msgstr "Nguồn Google Sheet"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+#, python-format
+msgid "Google Sheets API error: %(error)s"
+msgstr "Lỗi Google Sheets API: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+msgid "Google Sheets Connection"
+msgstr "Kết nối Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheets Credentials"
+msgstr "Thông tin xác thực Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheets Mail Source"
+msgstr "Nguồn email Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheets Row Results"
+msgstr "Kết quả từng dòng Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/google_sheet_source.py
+msgid "Google Sheets Sync Run"
+msgstr "Lần đồng bộ Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheets Sync Runs"
+msgstr "Các lần đồng bộ Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheets Synchronization Row Result"
+msgstr "Kết quả dòng đồng bộ Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+msgid "Google Sheets Synchronization Run"
+msgstr "Lần đồng bộ Google Sheets"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+msgid ""
+"Google Sheets dependencies are not installed. Install google-auth and "
+"google-api-python-client, then restart Odoo."
+msgstr ""
+"Chưa cài các thư viện Google Sheets. Hãy cài google-auth và google-api-"
+"python-client, sau đó khởi động lại Odoo."
+
+#. module: bhs_sendgrid_mailer
+msgid "Group by Batch"
+msgstr "Nhóm theo lô"
+
+#. module: bhs_sendgrid_mailer
+msgid "Group by Result"
+msgstr "Nhóm theo kết quả"
+
+#. module: bhs_sendgrid_mailer
+msgid "Group by SendGrid Event"
+msgstr "Nhóm theo sự kiện SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "Group by Source"
+msgstr "Nhóm theo nguồn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Group by Status"
+msgstr "Nhóm theo trạng thái"
+
+#. module: bhs_sendgrid_mailer
+msgid "Has Errors"
+msgstr "Có lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Has Message"
+msgstr "Có tin nhắn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Header Row"
+msgstr "Dòng tiêu đề"
+
+#. module: bhs_sendgrid_mailer
+msgid "History"
+msgstr "Lịch sử (History)"
+
+#. module: bhs_sendgrid_mailer
+msgid "How to Test Webhook"
+msgstr "Cách kiểm tra Webhook"
+
+#. module: bhs_sendgrid_mailer
+msgid "HubSpot ID"
+msgstr "HubSpot ID"
+
+#. module: bhs_sendgrid_mailer
+msgid "Hubspot Id Header"
+msgstr "Tiêu đề cột HubSpot ID"
+
+#. module: bhs_sendgrid_mailer
+msgid "ID"
+msgstr "ID"
+
+#. module: bhs_sendgrid_mailer
+msgid "ID returned by the SendGrid API for status lookup"
+msgstr "ID do SendGrid API trả về để tra cứu trạng thái"
+
+#. module: bhs_sendgrid_mailer
+msgid "If checked, new messages require your attention."
+msgstr "Nếu được chọn, các tin nhắn mới cần bạn xử lý."
+
+#. module: bhs_sendgrid_mailer
+msgid "If checked, some messages have a delivery error."
+msgstr "Nếu được chọn, một số tin nhắn gặp lỗi khi gửi."
+
+#. module: bhs_sendgrid_mailer
+msgid "Import Batch ID"
+msgstr "Mã lần import"
+
+#. module: bhs_sendgrid_mailer
+msgid "Import Data"
+msgstr "Nhập Dữ Liệu"
+
+#. module: bhs_sendgrid_mailer
+msgid "Import Data from Excel"
+msgstr "Nhập dữ liệu từ Excel"
+
+#. module: bhs_sendgrid_mailer
+msgid "Import Deduplication"
+msgstr "Lọc trùng dữ liệu đầu vào"
+
+#. module: bhs_sendgrid_mailer
+msgid "Import Excel File"
+msgstr "Nhập File Excel"
+
+#. module: bhs_sendgrid_mailer
+msgid "Import Row UUID"
+msgstr "UUID dòng import"
+
+#. module: bhs_sendgrid_mailer
+msgid "Import from Excel"
+msgstr "Nhập từ Excel"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Invalid email format (Spam/Invalid)"
+msgstr "Email sai định dạng (Spam/Không hợp lệ)"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#, python-format
+msgid "Invalid email format: %(email)s"
+msgstr "Định dạng email không hợp lệ: %(email)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "Is Follower"
+msgstr "Là người theo dõi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last API Sync"
+msgstr "Lần đồng bộ API cuối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Error"
+msgstr "Lỗi gần nhất"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Event Time"
+msgstr "Thời gian event cuối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last SendGrid Event"
+msgstr "Event SendGrid cuối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Success At"
+msgstr "Thành công gần nhất lúc"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Sync At"
+msgstr "Đồng bộ gần nhất lúc"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Sync Run"
+msgstr "Lần đồng bộ gần nhất"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Updated by"
+msgstr "Người cập nhật cuối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Updated on"
+msgstr "Ngày cập nhật cuối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Webhook Events"
+msgstr "Sự kiện webhook gần nhất"
+
+#. module: bhs_sendgrid_mailer
+msgid "Last Webhook Received"
+msgstr "Webhook nhận lần cuối"
+
+#. module: bhs_sendgrid_mailer
+msgid "Line"
+msgstr "Dòng"
+
+#. module: bhs_sendgrid_mailer
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Linkedin Header"
+msgstr "Tiêu đề cột LinkedIn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Lookback Period (days)"
+msgstr "Số ngày truy vấn ngược"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+msgid "Mail Queue"
+msgstr "Hàng đợi email"
+
+#. module: bhs_sendgrid_mailer
+msgid "Manage a bulk email queue through SendGrid with randomized delays"
+msgstr "Quản lý hàng đợi email hàng loạt qua SendGrid với độ trễ ngẫu nhiên"
+
+#. module: bhs_sendgrid_mailer
+msgid "Maximum Delay (seconds)"
+msgstr "Độ trễ tối đa (giây)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Maximum delay between successive messages"
+msgstr "Thời gian chờ tối đa giữa 2 mail liên tiếp"
+
+#. module: bhs_sendgrid_mailer
+msgid "Maximum number of messages scheduled per run"
+msgstr "Số mail tối đa được lấy ra để lên lịch mỗi lần chạy cronjob"
+
+#. module: bhs_sendgrid_mailer
+msgid "Message"
+msgstr "Thông báo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Message Delivery error"
+msgstr "Lỗi gửi tin nhắn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Messages"
+msgstr "Tin nhắn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Messages per Batch"
+msgstr "Số lượng mail mỗi mẻ (Batch Size)"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "Messages per Batch must be greater than zero."
+msgstr "Số email mỗi lô phải lớn hơn 0."
+
+#. module: bhs_sendgrid_mailer
+msgid "Minimum Delay (seconds)"
+msgstr "Độ trễ tối thiểu (giây)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Minimum delay between successive messages"
+msgstr "Thời gian chờ tối thiểu giữa 2 mail liên tiếp"
+
+#. module: bhs_sendgrid_mailer
+msgid "Minutes between SendGrid API status updates"
+msgstr "Số phút giữa 2 lần đồng bộ trạng thái SendGrid qua API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Minutes between outgoing queue runs"
+msgstr "Số phút giữa các lần xử lý hàng đợi gửi mail"
+
+#. module: bhs_sendgrid_mailer
+msgid "Missing From Source"
+msgstr "Không còn trong nguồn"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#, python-format
+msgid "Missing required Google Sheets columns: %(headers)s"
+msgstr "Thiếu các cột Google Sheets bắt buộc: %(headers)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#, python-format
+msgid "Missing the \"%(header)s\" column. Add it before enabling synchronization."
+msgstr "Thiếu cột \"%(header)s\". Hãy thêm cột này trước khi bật đồng bộ."
+
+#. module: bhs_sendgrid_mailer
+msgid "Name"
+msgstr "Tên"
+
+#. module: bhs_sendgrid_mailer
+msgid "Next Sync At"
+msgstr "Đồng bộ tiếp theo lúc"
+
+#. module: bhs_sendgrid_mailer
+msgid "Normalized Email"
+msgstr "Email chuẩn hóa"
+
+#. module: bhs_sendgrid_mailer
+msgid "Number of Actions"
+msgstr "Số tác vụ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Number of errors"
+msgstr "Số lỗi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Number of messages requiring action"
+msgstr "Số tin nhắn cần xử lý"
+
+#. module: bhs_sendgrid_mailer
+msgid "Number of messages with delivery error"
+msgstr "Số tin nhắn gặp lỗi khi gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Odoo Row ID"
+msgstr "ID dòng Odoo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Odoo Row ID must be unique within each Google Sheet source."
+msgstr "ID dòng Odoo phải là duy nhất trong mỗi nguồn Google Sheet."
+
+#. module: bhs_sendgrid_mailer
+msgid "Odoo Status Sync Interval (minutes)"
+msgstr "Chu kỳ đồng bộ trạng thái Odoo (phút)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Off"
+msgstr "Tắt"
+
+#. module: bhs_sendgrid_mailer
+msgid "Only synchronize emails created within this period"
+msgstr ""
+"Chỉ đồng bộ các email mới tạo trong khoảng thời gian này để tránh quét quá "
+"rộng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Opened"
+msgstr "Đã mở"
+
+#. module: bhs_sendgrid_mailer
+msgid "Original Odoo Mail"
+msgstr "Mail Gốc trong Odoo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Original mail record managed by Odoo"
+msgstr "Bản ghi email gốc do Odoo quản lý"
+
+#. module: bhs_sendgrid_mailer
+msgid "Outgoing Queue"
+msgstr "Hàng đợi gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Partial Success"
+msgstr "Thành công một phần"
+
+#. module: bhs_sendgrid_mailer
+msgid ""
+"Paste the full Google Service Account JSON. It is stored as a protected Odoo"
+" system parameter, like the SendGrid API key."
+msgstr ""
+"Dán toàn bộ JSON tài khoản dịch vụ Google. Dữ liệu được lưu dưới dạng tham "
+"số hệ thống Odoo được bảo vệ, tương tự khóa API SendGrid."
+
+#. module: bhs_sendgrid_mailer
+msgid "Pending"
+msgstr "Chưa gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid ""
+"Periodically query the SendGrid Activity API when a public webhook is "
+"unavailable"
+msgstr "Cron sẽ chủ động hỏi SendGrid Activity API khi chưa có webhook/domain public"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+msgid "Please select an Excel file."
+msgstr "Vui lòng chọn một tệp Excel."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Pre-send error: Invalid email format (Spam/Invalid)"
+msgstr "Lỗi trước khi gửi: Email sai định dạng (Spam/Không hợp lệ)"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Pre-send error: Sender Email is required when using SendGrid."
+msgstr "Lỗi trước khi gửi: Email người gửi là bắt buộc khi sử dụng SendGrid."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid ""
+"Pre-send error: the delay range is invalid. Minimum Delay must be zero or "
+"greater and cannot exceed Maximum Delay."
+msgstr ""
+"Lỗi trước khi gửi: khoảng trễ không hợp lệ. Độ trễ tối thiểu phải từ 0 trở "
+"lên và không được lớn hơn độ trễ tối đa."
+
+#. module: bhs_sendgrid_mailer
+msgid "Process the outgoing queue periodically"
+msgstr "Tự động duyệt và gửi mail định kỳ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Processing"
+msgstr "Đang xử lý"
+
+#. module: bhs_sendgrid_mailer
+msgid "Provider Outcome Unknown"
+msgstr "Chưa xác định kết quả từ nhà cung cấp"
+
+#. module: bhs_sendgrid_mailer
+msgid "Queue"
+msgstr "Hàng đợi (Queue)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Queue Count"
+msgstr "Số email trong hàng đợi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Reason"
+msgstr "Lý do"
+
+#. module: bhs_sendgrid_mailer
+msgid "Recipient"
+msgstr "Người nhận"
+
+#. module: bhs_sendgrid_mailer
+msgid "Recipient Email"
+msgstr "Email nhận"
+
+#. module: bhs_sendgrid_mailer
+msgid "Recipient Name"
+msgstr "Tên người nhận"
+
+#. module: bhs_sendgrid_mailer
+msgid "Remove the stored Google Service Account credential?"
+msgstr "Xóa thông tin xác thực tài khoản dịch vụ Google đã lưu?"
+
+#. module: bhs_sendgrid_mailer
+msgid "Result"
+msgstr "Kết quả"
+
+#. module: bhs_sendgrid_mailer
+msgid "Retry"
+msgstr "Gửi lại"
+
+#. module: bhs_sendgrid_mailer
+msgid "Retry Sending"
+msgstr "Thử gửi lại"
+
+#. module: bhs_sendgrid_mailer
+msgid "Row"
+msgstr "Dòng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Row Id Header"
+msgstr "Tiêu đề cột ID dòng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Row Number"
+msgstr "Số dòng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Run"
+msgstr "Lần chạy"
+
+#. module: bhs_sendgrid_mailer
+msgid "Run Error"
+msgstr "Lỗi lần chạy"
+
+#. module: bhs_sendgrid_mailer
+msgid "Running"
+msgstr "Đang chạy"
+
+#. module: bhs_sendgrid_mailer
+msgid "SMS Delivery error"
+msgstr "Lỗi gửi SMS"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sales Outreach Sheet"
+msgstr "Google Sheet tiếp cận khách hàng"
+
+#. module: bhs_sendgrid_mailer
+msgid "Schedule"
+msgstr "Lịch đồng bộ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Scheduled"
+msgstr "Đã lên lịch"
+
+#. module: bhs_sendgrid_mailer
+msgid "Scheduled Jobs and Queue"
+msgstr "Cấu hình Cronjob & Hàng đợi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Scheduled Send Time"
+msgstr "Giờ lên lịch gửi"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "Scheduled job intervals must be greater than zero minutes."
+msgstr "Chu kỳ cronjob phải lớn hơn 0 phút."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Send Emails"
+msgstr "Gửi email"
+
+#. module: bhs_sendgrid_mailer
+msgid "Send Now"
+msgstr "Gửi ngay (Manual)"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid API Key"
+msgstr "Khóa API SendGrid"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "SendGrid API Key is not configured."
+msgstr "Chưa cấu hình SendGrid API Key."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "SendGrid API error %(status)s: %(response)s"
+msgstr "Lỗi SendGrid API %(status)s: %(response)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "SendGrid Activity API error %(status)s: %(response)s"
+msgstr "Lỗi SendGrid Activity API %(status)s: %(response)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "SendGrid Batch API error %(status)s: %(response)s"
+msgstr "Lỗi SendGrid Batch API %(status)s: %(response)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Batch ID"
+msgstr "SendGrid Batch ID"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "SendGrid Cancel API error %(status)s: %(response)s"
+msgstr "Lỗi SendGrid Cancel API %(status)s: %(response)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Configuration"
+msgstr "Cấu hình SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Event Webhook verification key"
+msgstr "Khóa xác minh Event Webhook của SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Mail Event"
+msgstr "Sự kiện email SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Mailer Settings"
+msgstr "Cấu hình SendGrid Mailer"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Message ID"
+msgstr "ID tin nhắn SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Status"
+msgstr "Trạng thái SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Status Updates"
+msgstr "Cập nhật trạng thái SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Webhook URL"
+msgstr "URL webhook SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "SendGrid Webhook Verification Key"
+msgstr "Khóa xác minh Webhook SendGrid"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "SendGrid event: %(event)s"
+msgstr "Sự kiện SendGrid: %(event)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid ""
+"SendGrid event: %(event)s\n"
+"Reason: %(reason)s"
+msgstr ""
+"Sự kiện SendGrid: %(event)s\n"
+"Lý do: %(reason)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sender Email"
+msgstr "Email Người Gửi"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "Sender Email is required when a SendGrid API Key is configured."
+msgstr "Email người gửi là bắt buộc khi đã cấu hình khóa API SendGrid."
+
+#. module: bhs_sendgrid_mailer
+msgid "Sending History"
+msgstr "Lịch sử gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sending Interval (minutes)"
+msgstr "Chu kỳ gửi mail (phút)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sent"
+msgstr "Đã gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sent / Engaged"
+msgstr "Đã gửi / Tương tác"
+
+#. module: bhs_sendgrid_mailer
+msgid "Service Account Email"
+msgstr "Email tài khoản dịch vụ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Service Account JSON"
+msgstr "JSON tài khoản dịch vụ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Settings"
+msgstr "Cấu hình"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Name"
+msgstr "Tên trang tính"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Row Results"
+msgstr "Kết quả từng dòng Sheet"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Sync Runs"
+msgstr "Các lần đồng bộ Sheet"
+
+#. module: bhs_sendgrid_mailer
+msgid "Skipped"
+msgstr "Bỏ qua"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid ""
+"Skipped because the same email and content already exist in this Google "
+"Sheet source."
+msgstr ""
+"Bỏ qua vì email và nội dung giống nhau đã tồn tại trong nguồn Google Sheet "
+"này."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+#, python-format
+msgid "Skipped because this email is duplicated within this import: %(email)s"
+msgstr "Bỏ qua vì email này bị trùng trong lần nhập: %(email)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source"
+msgstr "Nguồn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source Conflict"
+msgstr "Xung đột dữ liệu nguồn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source Conflict Message"
+msgstr "Thông báo xung đột dữ liệu nguồn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source Conflicts"
+msgstr "Xung đột dữ liệu nguồn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source Data"
+msgstr "Nguồn dữ liệu"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source Hash"
+msgstr "Mã băm dữ liệu nguồn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Source Synchronized At"
+msgstr "Đồng bộ nguồn lúc"
+
+#. module: bhs_sendgrid_mailer
+msgid "Spam Report"
+msgstr "Báo cáo spam"
+
+#. module: bhs_sendgrid_mailer
+msgid "Spreadsheet"
+msgstr "Bảng tính"
+
+#. module: bhs_sendgrid_mailer
+msgid "Started At"
+msgstr "Bắt đầu lúc"
+
+#. module: bhs_sendgrid_mailer
+msgid "State"
+msgstr "Trạng thái"
+
+#. module: bhs_sendgrid_mailer
+msgid "Status"
+msgstr "Trạng thái"
+
+#. module: bhs_sendgrid_mailer
+msgid "Status Update Mode"
+msgstr "Chế độ cập nhật trạng thái"
+
+#. module: bhs_sendgrid_mailer
+msgid "Stores status synchronization history from the SendGrid API"
+msgstr "Lưu lịch sử đồng bộ trạng thái từ SendGrid API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Stores update history received from the SendGrid webhook"
+msgstr "Lưu lịch sử cập nhật nhận từ webhook SendGrid"
+
+#. module: bhs_sendgrid_mailer
+msgid "Subject"
+msgstr "Tiêu đề"
+
+#. module: bhs_sendgrid_mailer
+msgid "Subject Header"
+msgstr "Tiêu đề cột Tiêu đề email"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid "Subject is required."
+msgstr "Tiêu đề email là bắt buộc."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "Submitted: %(submitted)s. Already processed or not sendable: %(skipped)s."
+msgstr "Đã gửi xử lý: %(submitted)s. Đã xử lý hoặc không thể gửi: %(skipped)s."
+
+#. module: bhs_sendgrid_mailer
+msgid "Success"
+msgstr "Thành công"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync Interval Minutes"
+msgstr "Chu kỳ đồng bộ (phút)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync Now"
+msgstr "Đồng bộ ngay"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync Odoo Status"
+msgstr "Đồng bộ Trạng thái Odoo"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync Run"
+msgstr "Lần đồng bộ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync Run Count"
+msgstr "Số lần đồng bộ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync Runs"
+msgstr "Lịch sử đồng bộ"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sync SendGrid API"
+msgstr "Đồng bộ SendGrid API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Test Connection"
+msgstr "Kiểm tra kết nối"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+msgid ""
+"The Excel file is missing required columns. It must contain at least "
+"\"Email\" and \"Subject\" columns."
+msgstr ""
+"Tệp Excel thiếu cột bắt buộc. Tệp phải có ít nhất các cột \"Email\" và "
+"\"Tiêu đề\"."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+#, python-format
+msgid "The Google Service Account JSON is invalid: %(error)s"
+msgstr "JSON tài khoản dịch vụ Google không hợp lệ: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "The Google Service Account credential has been cleared."
+msgstr "Đã xóa thông tin xác thực tài khoản dịch vụ Google."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+msgid "The Google credential must be a Service Account JSON document."
+msgstr "Thông tin xác thực Google phải là tài liệu JSON của tài khoản dịch vụ."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#, python-format
+msgid "The Odoo Row ID is duplicated in rows %(rows)s."
+msgstr "ID dòng Odoo bị trùng tại các dòng %(rows)s."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "The SendGrid API Key is not configured for API status synchronization."
+msgstr "Chưa cấu hình SendGrid API Key để đồng bộ trạng thái qua API."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "The SendGrid Activity API has no new events for this message."
+msgstr "SendGrid Activity API chưa có sự kiện mới cho email này."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid ""
+"The SendGrid Activity API is inaccessible or unsupported by the account plan"
+" (HTTP %(status)s)."
+msgstr ""
+"Không thể truy cập SendGrid Activity API hoặc gói tài khoản chưa hỗ trợ "
+"(HTTP %(status)s)."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "The SendGrid Activity API returned data without a valid event."
+msgstr "SendGrid Activity API trả về dữ liệu nhưng không có sự kiện hợp lệ."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "The SendGrid Batch API did not return a Batch ID."
+msgstr "SendGrid Batch API không trả về Batch ID."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid ""
+"The SendGrid Webhook Verification Key is required when webhook status "
+"updates are enabled."
+msgstr ""
+"Khóa xác minh Webhook SendGrid là bắt buộc khi bật cập nhật trạng thái qua "
+"webhook."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "The SendGrid lookback period must be greater than zero days."
+msgstr "Khoảng thời gian truy vấn ngược SendGrid phải lớn hơn 0 ngày."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid ""
+"The SendGrid request outcome is unknown because the connection timed out or "
+"failed. Do not retry until the provider activity has been reconciled."
+msgstr ""
+"Chưa xác định được kết quả yêu cầu SendGrid do kết nối hết thời gian chờ "
+"hoặc thất bại. Không thử gửi lại cho đến khi đã đối soát hoạt động của nhà "
+"cung cấp."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+msgid "The Service Account JSON is missing client_email or private_key."
+msgstr "JSON tài khoản dịch vụ thiếu client_email hoặc private_key."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid ""
+"The Sheet row changed after the message left Pending. The submitted content "
+"was preserved."
+msgstr ""
+"Dòng trên Sheet đã thay đổi sau khi email rời trạng thái Chưa gửi. Nội dung "
+"đã gửi xử lý được giữ nguyên."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+#, python-format
+msgid ""
+"The configured range has no empty column for \"%(header)s\". Extend Column "
+"Range or add the column manually."
+msgstr ""
+"Phạm vi đã cấu hình không có cột trống cho \"%(header)s\". Hãy mở rộng Phạm "
+"vi cột hoặc tự thêm cột."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid "The configured sheet is empty."
+msgstr "Trang tính đã cấu hình đang trống."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid ""
+"The delay range is invalid. Minimum Delay must be zero or greater and cannot"
+" exceed Maximum Delay."
+msgstr ""
+"Khoảng trễ không hợp lệ. Độ trễ tối thiểu phải từ 0 trở lên và không được "
+"lớn hơn độ trễ tối đa."
+
+#. module: bhs_sendgrid_mailer
+msgid "The header row must be greater than zero."
+msgstr "Dòng tiêu đề phải lớn hơn 0."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "The message was not found in the SendGrid Activity API."
+msgstr "Không tìm thấy email trong SendGrid Activity API."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+msgid "The openpyxl library is not installed. Please install it on the server."
+msgstr "Thư viện openpyxl chưa được cài đặt. Vui lòng cài đặt trên máy chủ."
+
+#. module: bhs_sendgrid_mailer
+msgid "The synchronization interval must be greater than zero."
+msgstr "Chu kỳ đồng bộ phải lớn hơn 0."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid ""
+"The webhook now requires a real SendGrid signature. Use SendGrid Event "
+"Webhook settings to send a signed test event."
+msgstr ""
+"Webhook hiện yêu cầu chữ ký SendGrid hợp lệ. Hãy dùng phần cài đặt Event "
+"Webhook của SendGrid để gửi sự kiện kiểm tra có chữ ký."
+
+#. module: bhs_sendgrid_mailer
+msgid "This SendGrid event has already been processed."
+msgstr "Sự kiện SendGrid này đã được xử lý."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid ""
+"This scheduled message was created without a SendGrid Batch ID and cannot be"
+" cancelled remotely."
+msgstr "Email đã lên lịch này không có SendGrid Batch ID nên không thể hủy từ xa."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py
+msgid "This source is already being synchronized."
+msgstr "Nguồn này đang được đồng bộ."
+
+#. module: bhs_sendgrid_mailer
+msgid "Total Count"
+msgstr "Tổng số"
+
+#. module: bhs_sendgrid_mailer
+msgid "Tracking Mode"
+msgstr "Chế độ tracking"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+#, python-format
+msgid "Unable to authenticate the Google Service Account: %(error)s"
+msgstr "Không thể xác thực tài khoản dịch vụ Google: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/services/google_sheets_client.py
+#, python-format
+msgid "Unable to initialize Google Sheets credentials: %(error)s"
+msgstr "Không thể khởi tạo thông tin xác thực Google Sheets: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py
+#, python-format
+msgid ""
+"Unable to read the Excel file. Please ensure it is a valid .xlsx file.\n"
+"Error details: %(error)s"
+msgstr ""
+"Không thể đọc tệp Excel. Vui lòng đảm bảo đây là tệp .xlsx hợp lệ.\n"
+"Chi tiết lỗi: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "Unchanged"
+msgstr "Không thay đổi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Unchanged Count"
+msgstr "Số bản ghi không đổi"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py
+msgid "Unknown"
+msgstr "Không xác định"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+msgid "Unknown time"
+msgstr "Không rõ thời gian"
+
+#. module: bhs_sendgrid_mailer
+msgid "Update Mode"
+msgstr "Chế độ cập nhật"
+
+#. module: bhs_sendgrid_mailer
+msgid "Updated"
+msgstr "Đã cập nhật"
+
+#. module: bhs_sendgrid_mailer
+msgid "Updated Count"
+msgstr "Số bản ghi đã cập nhật"
+
+#. module: bhs_sendgrid_mailer
+msgid "Use the API key to send via SendGrid and synchronize status via API polling"
+msgstr "Sử dụng API Key để gửi qua SendGrid và đồng bộ trạng thái qua API Polling"
+
+#. module: bhs_sendgrid_mailer
+msgid "Use this URL as the HTTP POST endpoint for SendGrid Event Webhook"
+msgstr "Sử dụng link này thiết lập HTTP POST URL tại SendGrid Event Webhook"
+
+#. module: bhs_sendgrid_mailer
+msgid "Use this email as the default sender (e.g. no-reply@bhsoft.com)"
+msgstr "Sử dụng Email này làm người gửi mặc định (VD: no-reply@bhsoft.com)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Validate Credentials"
+msgstr "Xác thực thông tin đăng nhập"
+
+#. module: bhs_sendgrid_mailer
+msgid "Webhook"
+msgstr "Webhook"
+
+#. module: bhs_sendgrid_mailer
+msgid "Webhook + API"
+msgstr "Webhook + API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Webhook + API Polling"
+msgstr "Webhook + Thăm dò API"
+
+#. module: bhs_sendgrid_mailer
+msgid "Webhook History"
+msgstr "Lịch sử Webhook"
+
+#. module: bhs_sendgrid_mailer
+msgid "Webhook URL"
+msgstr "URL webhook"
+
+#. module: bhs_sendgrid_mailer
+msgid "Webhooks require a public domain. API polling also works on localhost."
+msgstr ""
+"Webhook cần domain public. API Polling dùng được khi đang chạy localhost "
+"hoặc chưa có domain."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "[%(time)s] %(message)s"
+msgstr "[%(time)s] %(message)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "[%(time)s] %(source)s event: %(event)s"
+msgstr "[%(time)s] Sự kiện %(source)s: %(event)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py
+#, python-format
+msgid "[%(time)s] %(source)s event: %(event)s - Reason: %(reason)s"
+msgstr "[%(time)s] Sự kiện %(source)s: %(event)s - Lý do: %(reason)s"
+
+#. module: bhs_sendgrid_mailer
+msgid "{ \"type\": \"service_account\", ... }"
+msgstr "{ \"type\": \"service_account\", ... }"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_key_configured
+msgid "SendGrid API Key Configured"
+msgstr "Đã cấu hình khóa API SendGrid"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__google_credentials_configured
+msgid "Google Credentials Configured"
+msgstr "Đã cấu hình thông tin xác thực Google"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_webhook_public_key_configured
+msgid "Webhook Verification Key Configured"
+msgstr "Đã cấu hình khóa xác minh Webhook"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_api_key
+msgid "New SendGrid API Key"
+msgstr "Khóa API SendGrid mới"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__google_service_account_json
+msgid "New Google Service Account JSON"
+msgstr "JSON tài khoản dịch vụ Google mới"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_webhook_public_key
+msgid "New SendGrid Webhook Verification Key"
+msgstr "Khóa xác minh Webhook SendGrid mới"
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Clear API Key"
+msgstr "Xóa khóa API"
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Clear Verification Key"
+msgstr "Xóa khóa xác minh"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Connected to SendGrid as %(account)s."
+msgstr "Đã kết nối SendGrid với tài khoản %(account)s."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Disable webhook status updates before clearing the verification key."
+msgstr "Hãy tắt cập nhật trạng thái qua webhook trước khi xóa khóa xác minh."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Enter a Google Service Account JSON before testing the connection."
+msgstr "Hãy nhập JSON tài khoản dịch vụ Google trước khi kiểm tra kết nối."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Enter a SendGrid API Key before testing the connection."
+msgstr "Hãy nhập khóa API SendGrid trước khi kiểm tra kết nối."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid Connection"
+msgstr "Kết nối SendGrid"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid Webhook"
+msgstr "Webhook SendGrid"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid rejected the API Key (HTTP %(status)s)."
+msgstr "SendGrid đã từ chối khóa API (HTTP %(status)s)."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "The SendGrid API Key has been cleared."
+msgstr "Đã xóa khóa API SendGrid."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "The SendGrid Webhook Verification Key has been cleared."
+msgstr "Đã xóa khóa xác minh Webhook SendGrid."
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "Unable to connect to SendGrid: %(error)s"
+msgstr "Không thể kết nối tới SendGrid: %(error)s"
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid returned an invalid response."
+msgstr "SendGrid trả về phản hồi không hợp lệ."

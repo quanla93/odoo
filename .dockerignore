@@ -1,0 +1,15 @@
+.git
+.code-review-graph
+.env
+.env.*
+!.env.example
+odoo.conf
+docker-compose.override.yml
+venv
+odoo_data
+backups
+**/__pycache__
+**/*.py[cod]
+*.log
+*.dump
+node_modules

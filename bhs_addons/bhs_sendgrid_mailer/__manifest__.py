@@ -1,0 +1,31 @@
+{
+    'name': 'BHSoft SendGrid Mailer',
+    'version': '20.0.1.1.0',
+    'summary': 'Manage a bulk email queue through SendGrid with randomized delays',
+    'author': 'BHSoft',
+    'website': 'https://github.com/quanla93/odoo',
+    'category': 'Marketing',
+    'depends': ['base', 'mail', 'base_import_module', 'website'],
+    'external_dependencies': {
+        'python': [
+            'cryptography',
+            'google-auth',
+            'google-api-python-client',
+            'openpyxl',
+        ],
+    },
+    'data': [
+        'security/ir.access.csv',
+        'data/cron_jobs.xml',
+        'views/mail_queue_views.xml',
+        'views/google_sheet_source_views.xml',
+        'views/google_sheet_sync_run_views.xml',
+        'views/menu_views.xml',
+        'wizard/mail_queue_import_wizard_views.xml',
+        'views/res_config_settings_views.xml',
+        'views/apps_views.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'license': 'OPL-1',
+}

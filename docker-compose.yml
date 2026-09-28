@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    container_name: odoo-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER:-odoo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - odoo-db-pg16:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo} -d ${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: odoo_web
+    command: ["python3", "./odoo-bin", "-c", "odoo.conf", "--db_host=db", "--db_user=${POSTGRES_USER:-odoo}", "--db_password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}", "-d", "${ODOO_DB:-bhsoft_v20_db}"]
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${ODOO_PORT:-8069}:8069"
+    volumes:
+      # Mount bhs_addons để khi sửa code ở máy host thì trong container cũng update ngay
+      - ./bhs_addons:/app/bhs_addons
+      # Mount file cấu hình
+      - ./odoo.conf:/app/odoo.conf
+      # Persist Odoo filestore (attachments, generated assets, sessions)
+      - ./odoo_data:/root/.local/share/Odoo
+    environment:
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-odoo}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    restart: unless-stopped
+
+volumes:
+  odoo-db-pg16:
+    external: true

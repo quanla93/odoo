@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.bhsoft.sendgrid</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="90"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="BHSoft Mailer" string="BHSoft Mailer" name="bhs_sendgrid_mailer" groups="base.group_system">
+                    <block title="SendGrid Configuration" name="sendgrid_config">
+                        <setting string="Sender Email" help="Use this email as the default sender (e.g. no-reply@bhsoft.com)">
+                            <field name="sendgrid_sender"/>
+                        </setting>
+                        <setting string="SendGrid API Key" help="The saved key is never displayed again. Leave this field empty to keep the current key.">
+                            <field name="sendgrid_api_key_configured" invisible="1"/>
+                            <div class="mb-2">
+                                <span class="text-success" invisible="not sendgrid_api_key_configured">✓ API key is configured</span>
+                                <span class="text-muted" invisible="sendgrid_api_key_configured">Not configured</span>
+                            </div>
+                            <field name="sendgrid_api_key" password="True" placeholder="Paste a new API key to connect or replace"/>
+                            <div class="mt-2">
+                                <button name="action_test_sendgrid_credentials" type="object" string="Test Connection" class="btn btn-secondary" icon="fa-plug"/>
+                                <button name="action_clear_sendgrid_credentials" type="object" string="Clear API Key" class="btn btn-link" invisible="not sendgrid_api_key_configured" confirm="Remove the stored SendGrid API Key?"/>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="Google Sheets Credentials" name="google_sheets_credentials">
+                        <setting string="Service Account JSON" help="The saved JSON and private key are never displayed again. Leave this field empty to keep the current credential.">
+                            <field name="google_credentials_configured" invisible="1"/>
+                            <div class="mb-2">
+                                <span class="text-success" invisible="not google_credentials_configured">✓ Google credentials are configured</span>
+                                <span class="text-muted" invisible="google_credentials_configured">Not configured</span>
+                            </div>
+                            <div class="mb-2" invisible="not google_service_account_email">
+                                <span>Service account: </span>
+                                <field name="google_service_account_email" readonly="1" class="oe_inline"/>
+                                <span invisible="not google_project_id"> — Project: </span>
+                                <field name="google_project_id" readonly="1" class="oe_inline"/>
+                            </div>
+                            <field name="google_service_account_json" password="True" placeholder="Paste new Service Account JSON to connect or replace"/>
+                            <div class="mt-2">
+                                <button name="action_test_google_credentials" type="object" string="Validate Credentials" class="btn btn-secondary" icon="fa-plug"/>
+                                <button name="action_clear_google_credentials" type="object" string="Clear Credentials" class="btn btn-link" invisible="not google_credentials_configured" confirm="Remove the stored Google Service Account credential?"/>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <block title="SendGrid Status Updates" name="sendgrid_tracking_config">
+                        <setting string="Update Mode" help="Webhooks require a public domain. API polling also works on localhost.">
+                            <field name="sendgrid_tracking_mode"/>
+                        </setting>
+                        <setting string="Webhook URL" help="Use this URL as the HTTP POST endpoint for SendGrid Event Webhook">
+                            <field name="sendgrid_webhook_public_key_configured" invisible="1"/>
+                            <field name="sendgrid_webhook_url" readonly="1" widget="CopyClipboardChar"/>
+                            <div class="my-2">
+                                <span class="text-success" invisible="not sendgrid_webhook_public_key_configured">✓ Verification key is configured</span>
+                                <span class="text-muted" invisible="sendgrid_webhook_public_key_configured">Verification key is not configured</span>
+                            </div>
+                            <field name="sendgrid_webhook_public_key" password="True" placeholder="Paste a new verification key to connect or replace"/>
+                            <div class="mt-2">
+                                <button name="action_test_sendgrid_webhook" type="object" string="How to Test Webhook" class="btn btn-secondary" icon="fa-plug"/>
+                                <button name="action_clear_sendgrid_webhook_key" type="object" string="Clear Verification Key" class="btn btn-link" invisible="not sendgrid_webhook_public_key_configured" confirm="Disable webhook status updates first, then remove the stored verification key?"/>
+                            </div>
+                            <div class="mt-2" invisible="not sendgrid_last_webhook_received_at">
+                                <span class="text-success">Last received:</span>
+                                <field name="sendgrid_last_webhook_received_at" readonly="1" class="oe_inline"/>
+                                <span invisible="not sendgrid_last_webhook_events"> — </span>
+                                <field name="sendgrid_last_webhook_events" readonly="1" class="oe_inline"/>
+                            </div>
+                            <div class="text-muted mt-2">
+                                <em>
+                                    Copy the URL above and configure it in <b>SendGrid &gt; Settings &gt; Mail Settings &gt; Event Webhook</b>.<br/>
+                                    Recommended events: <b>Processed, Delivered, Open, Click, Bounced, Dropped, Spam Reports</b>.
+                                </em>
+                            </div>
+                        </setting>
+                        <setting string="Enable API Polling" help="Periodically query the SendGrid Activity API when a public webhook is unavailable">
+                            <field name="sendgrid_api_polling_active"/>
+                        </setting>
+                        <setting string="API Polling Interval" help="Minutes between SendGrid API status updates">
+                            <field name="sendgrid_api_polling_interval"/>
+                        </setting>
+                        <setting string="Lookback Period (days)" help="Only synchronize emails created within this period">
+                            <field name="sendgrid_api_polling_window_days"/>
+                        </setting>
+                    </block>
+
+                    <block title="Import Deduplication" name="sendgrid_dedupe_config">
+                        <setting string="Deduplication Mode" help="Filter duplicate recipients within the same import batch">
+                            <field name="sendgrid_dedupe_mode"/>
+                        </setting>
+                    </block>
+
+                    <block title="Scheduled Jobs and Queue" name="cronjob_config">
+                        <setting string="Enable Scheduled Sending" help="Process the outgoing queue periodically">
+                            <field name="mail_cron_active"/>
+                        </setting>
+                        <setting string="Sending Interval (minutes)" help="Minutes between outgoing queue runs">
+                            <field name="mail_cron_interval"/>
+                        </setting>
+                        <setting string="Odoo Status Sync Interval (minutes)" help="Check mail.mail to update queue status (sent or failed). This job runs periodically, not continuously; select 1 minute for faster updates. It does not call the SendGrid API.">
+                            <field name="mail_sync_interval"/>
+                        </setting>
+                        <setting string="Batch Size" help="Maximum number of messages added per run. Each new batch is scheduled after the latest existing message so batches never overlap. This limit also applies to Send Now.">
+                            <field name="mail_cron_batch_size"/>
+                        </setting>
+                        <setting string="Minimum Delay (seconds)" help="Minimum delay between successive messages">
+                            <field name="mail_cron_delay_min"/>
+                        </setting>
+                        <setting string="Maximum Delay (seconds)" help="Maximum delay between successive messages">
+                            <field name="mail_cron_delay_max"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_bhsoft_sendgrid_config_settings" model="ir.actions.act_window">
+        <field name="name">SendGrid Mailer Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_id" ref="res_config_settings_view_form"/>
+        <field name="view_mode">form</field>
+        <field name="context">{'module' : 'bhs_sendgrid_mailer', 'bin_size': False}</field>
+    </record>
+
+    <menuitem id="menu_bhsoft_mail_queue_settings"
+              name="Settings"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_sendgrid_config_settings"
+              sequence="50"/>
+</odoo>

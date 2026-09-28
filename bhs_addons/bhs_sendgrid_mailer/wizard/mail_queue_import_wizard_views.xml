@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bhsoft_mail_queue_import_form" model="ir.ui.view">
+        <field name="name">bhsoft.mail.queue.import.form</field>
+        <field name="model">bhsoft.mail.queue.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Data from Excel">
+                <group>
+                    <field name="file_name" invisible="1"/>
+                    <field name="file" filename="file_name"/>
+                </group>
+                <div class="text-muted mt8">
+                    * The Excel file must have a header row. The system automatically recognizes these columns:<br/>
+                    <b>Contact, Email, Subject, Body, HubSpot ID, LinkedIn, Company, Company Website</b>.<br/>
+                    The template may also contain <b>No., Sending Status, Sent date, Sent time</b>; these operational columns are ignored during import.<br/>
+                    * Each imported row receives a unique UUID. When batch deduplication is enabled, only the first row for an email remains pending; later rows with the same normalized email are marked <b>Duplicate / Skipped</b> and are not sent.
+                </div>
+                <footer>
+                    <button name="action_import" string="Import Data" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_bhsoft_mail_queue_import" model="ir.actions.act_window">
+        <field name="name">Import from Excel</field>
+        <field name="res_model">bhsoft.mail.queue.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_bhsoft_mail_queue_import"
+              name="Import Excel File"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_mail_queue_import"
+              sequence="20"/>
+</odoo>

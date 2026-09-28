@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_bhsoft_mail_root" name="BHSoft Mailer" sequence="20"/>
+
+    <menuitem id="menu_bhsoft_mail_queue_pending"
+              name="Queue"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_mail_queue_pending"
+              sequence="1"/>
+
+    <!-- These audit actions stay available through filters on All Messages. -->
+    <menuitem id="menu_bhsoft_mail_queue_history"
+              name="History"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_mail_queue_history"
+              sequence="2"
+              active="False"/>
+
+    <menuitem id="menu_bhsoft_mail_queue_duplicates"
+              name="Duplicate / Skipped"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_mail_queue_duplicates"
+              sequence="3"
+              active="False"/>
+
+    <menuitem id="menu_bhsoft_mail_queue_all"
+              name="All Messages"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_mail_queue_all"
+              sequence="4"/>
+
+    <menuitem id="menu_bhsoft_google_sheet_sources"
+              name="Google Sheet Sources"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_google_sheet_sources"
+              sequence="10"/>
+
+    <!-- Sync audit details are opened from the source form's Sync Runs button. -->
+    <menuitem id="menu_bhsoft_google_sheet_sync_runs"
+              name="Sheet Sync Runs"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_google_sheet_sync_runs"
+              sequence="11"
+              active="False"/>
+
+    <menuitem id="menu_bhsoft_google_sheet_sync_errors"
+              name="Sheet Row Results"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_google_sheet_sync_errors"
+              sequence="12"
+              active="False"/>
+</odoo>

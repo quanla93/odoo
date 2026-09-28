@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bhsoft_google_sheet_source_list" model="ir.ui.view">
+        <field name="name">bhsoft.google.sheet.source.list</field>
+        <field name="model">bhsoft.google.sheet.source</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="failure_count &gt; 0" decoration-muted="not active">
+                <field name="name"/>
+                <field name="spreadsheet_id" optional="hide"/>
+                <field name="sheet_name"/>
+                <field name="auto_sync"/>
+                <field name="sync_interval_minutes"/>
+                <field name="next_sync_at" optional="show"/>
+                <field name="last_success_at" optional="show"/>
+                <field name="failure_count"/>
+                <field name="queue_count"/>
+                <field name="conflict_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bhsoft_google_sheet_source_form" model="ir.ui.view">
+        <field name="name">bhsoft.google.sheet.source.form</field>
+        <field name="model">bhsoft.google.sheet.source</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection" type="object" string="Test Connection" class="btn-secondary"/>
+                    <button name="action_sync_now" type="object" string="Sync Now" class="btn-primary"/>
+                    <field name="active" widget="boolean_toggle"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_queue" type="object" class="oe_stat_button" icon="fa-envelope">
+                            <field name="queue_count" widget="statinfo" string="Messages"/>
+                        </button>
+                        <button name="action_view_sync_runs" type="object" class="oe_stat_button" icon="fa-refresh">
+                            <field name="sync_run_count" widget="statinfo" string="Sync Runs"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Sales Outreach Sheet"/></h1>
+                    </div>
+                    <group>
+                        <group string="Spreadsheet">
+                            <field name="spreadsheet_id"/>
+                            <field name="sheet_name"/>
+                            <field name="range_columns"/>
+                            <field name="header_row"/>
+                            <field name="service_account_email" readonly="1"/>
+                            <field name="google_project_id" readonly="1"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="auto_sync" help="Enable the shared Google Sheets scheduler. It checks for due sources every 5 minutes."/>
+                            <field name="sync_interval_minutes" help="Minutes between successful automatic synchronization attempts for this source."/>
+                            <field name="next_sync_at"/>
+                            <field name="last_sync_at" readonly="1"/>
+                            <field name="last_success_at" readonly="1"/>
+                            <field name="failure_count" readonly="1"/>
+                            <field name="conflict_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Column Mapping" col="4">
+                        <field name="row_id_header"/>
+                        <field name="contact_header"/>
+                        <field name="email_header"/>
+                        <field name="subject_header"/>
+                        <field name="body_header"/>
+                        <field name="hubspot_id_header"/>
+                        <field name="linkedin_header"/>
+                        <field name="company_header"/>
+                        <field name="company_website_header"/>
+                    </group>
+                    <group string="Last Error" invisible="not last_error">
+                        <field name="last_error" readonly="1" nolabel="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Sync Runs">
+                            <field name="sync_run_ids" readonly="1">
+                                <list>
+                                    <field name="started_at"/>
+                                    <field name="finished_at"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="total_count"/>
+                                    <field name="created_count"/>
+                                    <field name="updated_count"/>
+                                    <field name="duplicate_count"/>
+                                    <field name="conflict_count"/>
+                                    <field name="error_count"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bhsoft_google_sheet_source_search" model="ir.ui.view">
+        <field name="name">bhsoft.google.sheet.source.search</field>
+        <field name="model">bhsoft.google.sheet.source</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="spreadsheet_id"/>
+                <field name="sheet_name"/>
+                <filter string="Automatic" name="automatic" domain="[('auto_sync', '=', True)]"/>
+                <filter string="Has Errors" name="has_errors" domain="[('failure_count', '&gt;', 0)]"/>
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bhsoft_google_sheet_sources" model="ir.actions.act_window">
+        <field name="name">Google Sheet Sources</field>
+        <field name="res_model">bhsoft.google.sheet.source</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_bhsoft_google_sheet_source_search"/>
+    </record>
+</odoo>
