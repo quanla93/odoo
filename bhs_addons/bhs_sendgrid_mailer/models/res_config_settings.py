@@ -81,6 +81,23 @@ class ResConfigSettings(models.TransientModel):
     mail_cron_delay_min = fields.Integer(string='Minimum Delay (seconds)', config_parameter='bhs_sendgrid_mailer.delay_min', default=45)
     mail_cron_delay_max = fields.Integer(string='Maximum Delay (seconds)', config_parameter='bhs_sendgrid_mailer.delay_max', default=90)
 
+    queue_retention_days = fields.Integer(
+        string='Terminal Queue Retention (days)',
+        config_parameter='bhs_sendgrid_mailer.queue_retention_days', default=90,
+    )
+    event_retention_days = fields.Integer(
+        string='Event and Log Retention (days)',
+        config_parameter='bhs_sendgrid_mailer.event_retention_days', default=30,
+    )
+    sync_line_retention_days = fields.Integer(
+        string='Sheet Row Audit Retention (days)',
+        config_parameter='bhs_sendgrid_mailer.sync_line_retention_days', default=30,
+    )
+    sync_run_retention_days = fields.Integer(
+        string='Sheet Run Summary Retention (days)',
+        config_parameter='bhs_sendgrid_mailer.sync_run_retention_days', default=365,
+    )
+
     @api.model
     def _get_stored_credential(self, parameter):
         return self.env['ir.config_parameter'].sudo().get_str(parameter, '')
@@ -259,6 +276,15 @@ class ResConfigSettings(models.TransientModel):
             raise ValidationError(_('Messages per Batch must be greater than zero.'))
         if self.sendgrid_api_polling_window_days <= 0:
             raise ValidationError(_('The SendGrid lookback period must be greater than zero days.'))
+        if any(days < 0 for days in (
+            self.queue_retention_days,
+            self.event_retention_days,
+            self.sync_line_retention_days,
+            self.sync_run_retention_days,
+        )):
+            raise ValidationError(_(
+                'Retention periods must be zero or greater. Use zero to disable cleanup.'
+            ))
         config = self.env['ir.config_parameter'].sudo()
         effective_api_key = self._credential_value(
             self.sendgrid_api_key,
@@ -348,6 +374,10 @@ class ResConfigSettings(models.TransientModel):
             sendgrid_api_polling_interval=config.get_int('bhs_sendgrid_mailer.api_polling_interval', 15),
             sendgrid_api_polling_window_days=config.get_int('bhs_sendgrid_mailer.api_polling_window_days', 7),
             sendgrid_dedupe_mode=config.get_str('bhs_sendgrid_mailer.dedupe_mode', 'batch_email'),
+            queue_retention_days=config.get_int('bhs_sendgrid_mailer.queue_retention_days', 90),
+            event_retention_days=config.get_int('bhs_sendgrid_mailer.event_retention_days', 30),
+            sync_line_retention_days=config.get_int('bhs_sendgrid_mailer.sync_line_retention_days', 30),
+            sync_run_retention_days=config.get_int('bhs_sendgrid_mailer.sync_run_retention_days', 365),
             sendgrid_api_key=False,
             google_service_account_json=False,
             sendgrid_webhook_public_key=False,

@@ -6,60 +6,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 20.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-24 03:11+0000\n"
-"PO-Revision-Date: 2026-09-24 03:11+0000\n"
+"POT-Creation-Date: 2026-09-28 08:10+0000\n"
+"PO-Revision-Date: 2026-09-28 08:10+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
-
-#. module: bhs_sendgrid_mailer
-#: model:ir.module.module,description:base.module_bhs_sendgrid_mailer
-msgid ""
-"# BHSoft SendGrid Mailer\n"
-"\n"
-"## Overview\n"
-"\n"
-"`bhs_sendgrid_mailer` is a custom Odoo module for importing and processing bulk email through SendGrid. It provides a managed queue, randomized cumulative delays, delivery-status synchronization, duplicate filtering, and cancellation of scheduled messages.\n"
-"\n"
-"The module replaces the previous n8n and Google Sheets workflow so that imported data and delivery state remain available in Odoo.\n"
-"\n"
-"## Workflow\n"
-"\n"
-"### 1. Import recipients\n"
-"\n"
-"Use the **Import Excel File** wizard to load recipient data. The system recognizes English and Vietnamese headers for the recipient name, email, subject, body, and company. Each imported row receives a UUID and an import Batch ID.\n"
-"\n"
-"### 2. Validate and deduplicate\n"
-"\n"
-"Email addresses are validated during import and again before sending. Invalid addresses are marked as failed. When batch deduplication is enabled, repeated recipient addresses within the same import are marked as duplicate and are not sent.\n"
-"\n"
-"### 3. Process the outgoing queue\n"
-"\n"
-"The scheduled queue job processes a configurable number of pending messages per run. For every message, it adds a random delay between the configured minimum and maximum. These delays are cumulative, so the messages are scheduled at separate times.\n"
-"\n"
-"When a SendGrid API key is configured, the message is submitted directly to SendGrid with `send_at` and a SendGrid Batch ID. Without an API key, the module falls back to the Odoo mail queue.\n"
-"\n"
-"### 4. Synchronize status\n"
-"\n"
-"Odoo mail state can be synchronized by a scheduled job. Detailed SendGrid events can be received through the Event Webhook, queried through the SendGrid Activity API, or collected through both methods. Supported event states include processed, delivered, opened, clicked, bounced, dropped, and spam reports.\n"
-"\n"
-"Scheduled SendGrid messages with a Batch ID can be cancelled before their send time.\n"
-"\n"
-"## Configuration\n"
-"\n"
-"Administrators can configure:\n"
-"\n"
-"- the SendGrid API key and sender email;\n"
-"- webhook and API polling status updates;\n"
-"- the API polling interval and lookback period;\n"
-"- duplicate filtering for each import batch;\n"
-"- scheduled queue processing and Odoo status synchronization;\n"
-"- batch size;\n"
-"- minimum and maximum delay between messages.\n"
-msgstr ""
 
 #. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_import_form
@@ -75,7 +29,7 @@ msgstr ""
 msgid ""
 "<em>\n"
 "                                    Copy the URL above and configure it in <b>SendGrid &gt; Settings &gt; Mail Settings &gt; Event Webhook</b>.<br/>\n"
-"                                    Recommended events: <b>Processed, Delivered, Open, Click, Bounced, Dropped, Spam Reports</b>.\n"
+"                                    Recommended events: <b>Processed, Delivered, Open, Click, Bounced, Dropped, Spam Reports, Unsubscribe, Group Unsubscribe</b>.\n"
 "                                </em>"
 msgstr ""
 
@@ -150,7 +104,9 @@ msgid "Action Needed"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__active
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__active
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_email_suppression_search
 msgid "Active"
 msgstr ""
 
@@ -163,6 +119,14 @@ msgstr ""
 #: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_all
 #: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_mail_queue_all
 msgid "All Messages"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid ""
+"Another batch is being prepared. %(pending)s selected messages remain "
+"Pending."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -193,6 +157,11 @@ msgid "BHSoft SendGrid Mailer"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.actions.server,name:bhs_sendgrid_mailer.ir_cron_enforce_email_suppressions_ir_actions_server
+msgid "BHSoft: Enforce Email Suppressions"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.actions.server,name:bhs_sendgrid_mailer.ir_cron_sync_google_sheets_ir_actions_server
 msgid "BHSoft: Import Google Sheets Sources"
 msgstr ""
@@ -220,6 +189,12 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "Batch Size"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Batch Size must be greater than zero. No messages were submitted."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -290,6 +265,12 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #. odoo-python
 #: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Cancelled because this recipient is suppressed."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
 msgid ""
 "Cancelled: %(cancelled)s. Already sent or not cancellable: %(skipped)s. "
 "Failed: %(failed)s."
@@ -342,6 +323,11 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,help:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__range_columns
 msgid "Column range containing headers and data, for example A:I."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__compacted_at
+msgid "Compacted At"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -435,6 +421,7 @@ msgid "Created Count"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__create_uid
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__create_uid
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__create_uid
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__create_uid
@@ -445,6 +432,7 @@ msgid "Created by"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__create_date
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__create_date
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__create_date
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__create_date
@@ -465,6 +453,39 @@ msgstr ""
 #: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
 #: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
 msgid "Customer"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Data Retention"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Days to keep Google Sheet synchronization summaries after row details are "
+"gone. Set to zero to disable."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Days to keep detailed SendGrid events and diagnostic text logs. Set to zero "
+"to disable."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Days to keep individual Google Sheet synchronization row results. Set to "
+"zero to disable."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid ""
+"Days to keep terminal Excel queue records. Google Sheet queue records are "
+"compacted instead of deleted. Set to zero to disable."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -502,6 +523,7 @@ msgid ""
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__display_name
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__display_name
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__display_name
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__display_name
@@ -574,6 +596,7 @@ msgstr ""
 
 #. module: bhs_sendgrid_mailer
 #. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/email_suppression.py:0
 #: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
 msgid "Email is required."
 msgstr ""
@@ -601,6 +624,13 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "Enable Scheduled Sending"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid ""
+"Enable the shared Google Sheets scheduler. It checks for due sources every 5"
+" minutes."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -663,6 +693,16 @@ msgid "Event Type"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Event and Log Retention"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__event_retention_days
+msgid "Event and Log Retention (days)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue_import_wizard__file
 msgid "Excel File (.xlsx)"
 msgstr ""
@@ -712,6 +752,11 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__finished_at
 msgid "Finished At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__first_event_at
+msgid "First Event At"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -837,6 +882,11 @@ msgid "Group by Batch"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_email_suppression_search
+msgid "Group by Reason"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_sync_line_search
 msgid "Group by Result"
 msgstr ""
@@ -854,6 +904,11 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_search
 msgid "Group by Status"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__reason__hard_bounce
+msgid "Hard Bounce"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -893,6 +948,7 @@ msgid "Hubspot Id Header"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__id
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__id
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__id
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__id
@@ -953,8 +1009,20 @@ msgid "Import Row UUID"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.module.module,description:base.module_bhs_sendgrid_mailer
+msgid ""
+"Import and send email with suppression, provider tracking, and bounded data "
+"retention."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_mail_queue_import
 msgid "Import from Excel"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_email_suppression_search
+msgid "Inactive"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -981,14 +1049,29 @@ msgid "Last API Sync"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__last_detail
+msgid "Last Detail"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__last_error
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
 msgid "Last Error"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__last_event_at
+msgid "Last Event At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__last_sendgrid_event_time
 msgid "Last Event Time"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__last_provider_event_id
+msgid "Last Provider Event"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1012,6 +1095,7 @@ msgid "Last Sync Run"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__write_uid
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__write_uid
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__write_uid
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__write_uid
@@ -1022,6 +1106,7 @@ msgid "Last Updated by"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__write_date
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_source__write_date
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__write_date
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__write_date
@@ -1039,6 +1124,11 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_last_webhook_received_at
 msgid "Last Webhook Received"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_email_suppression_form
+msgid "Latest Detail"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1074,6 +1164,16 @@ msgid "Manage a bulk email queue through SendGrid with randomized delays"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__provider__manual
+msgid "Manual"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__reason__manual
+msgid "Manual Block"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_delay_max
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "Maximum Delay (seconds)"
@@ -1086,7 +1186,10 @@ msgstr ""
 
 #. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
-msgid "Maximum number of messages scheduled per run"
+msgid ""
+"Maximum number of messages added per run. Each new batch is scheduled after "
+"the latest existing message so batches never overlap. This limit also "
+"applies to Send Now."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1119,6 +1222,11 @@ msgid "Messages per Batch must be greater than zero."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__provider__migration
+msgid "Migration"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__mail_cron_delay_min
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "Minimum Delay (seconds)"
@@ -1137,6 +1245,13 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "Minutes between outgoing queue runs"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_google_sheet_source_form
+msgid ""
+"Minutes between successful automatic synchronization attempts for this "
+"source."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1183,6 +1298,7 @@ msgid "Next Sync At"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__normalized_email
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__normalized_email
 msgid "Normalized Email"
 msgstr ""
@@ -1326,6 +1442,11 @@ msgid "Processing"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__provider
+msgid "Provider"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__unknown
 msgid "Provider Outcome Unknown"
 msgstr ""
@@ -1345,6 +1466,7 @@ msgid "Queue Count"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_email_suppression__reason
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_event__reason
 msgid "Reason"
 msgstr ""
@@ -1377,6 +1499,13 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_line__result
 msgid "Result"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid ""
+"Retention periods must be zero or greater. Use zero to disable cleanup."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1470,6 +1599,11 @@ msgid "Send Now"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__provider__sendgrid
+msgid "SendGrid"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "SendGrid API Key"
 msgstr ""
@@ -1523,6 +1657,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
 msgid "SendGrid Connection"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__event_ids
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
+msgid "SendGrid Events"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1583,6 +1723,12 @@ msgid "SendGrid rejected the API Key (HTTP %(status)s)."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
+msgid "SendGrid returned an invalid response."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sendgrid_sender
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
 msgid "Sender Email"
@@ -1636,8 +1782,28 @@ msgid "Sheet Name"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Sheet Row Audit Retention"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sync_line_retention_days
+msgid "Sheet Row Audit Retention (days)"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_google_sheet_sync_errors
 msgid "Sheet Row Results"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Sheet Run Summary Retention"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__sync_run_retention_days
+msgid "Sheet Run Summary Retention (days)"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1652,6 +1818,11 @@ msgid "Skipped"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_google_sheet_sync_run__skipped_count
+msgid "Skipped Count"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #. odoo-python
 #: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
 msgid ""
@@ -1663,6 +1834,21 @@ msgstr ""
 #. odoo-python
 #: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
 msgid "Skipped because this email is duplicated within this import: %(email)s"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "Skipped because this recipient is suppressed."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/email_suppression.py:0
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+#: code:addons/bhs_sendgrid_mailer/services/google_sheet_sync_service.py:0
+#: code:addons/bhs_sendgrid_mailer/wizard/mail_queue_import_wizard.py:0
+msgid "Skipped because this recipient is suppressed: %(reason)s"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1703,6 +1889,7 @@ msgid "Source Synchronized At"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__reason__spam_report
 #: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__spamreport
 msgid "Spam Report"
 msgstr ""
@@ -1763,12 +1950,29 @@ msgstr ""
 #. odoo-python
 #: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
 msgid ""
-"Submitted: %(submitted)s. Already processed or not sendable: %(skipped)s."
+"Submitted: %(submitted)s. Deferred to a later batch: %(deferred)s. Already "
+"processed or not sendable: %(skipped)s."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_google_sheet_sync_run__state__success
 msgid "Success"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model,name:bhs_sendgrid_mailer.model_bhsoft_email_suppression
+msgid "Suppressed Email Address"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__suppression_id
+msgid "Suppression"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.actions.act_window,name:bhs_sendgrid_mailer.action_bhsoft_email_suppressions
+#: model:ir.ui.menu,name:bhs_sendgrid_mailer.menu_bhsoft_email_suppressions
+msgid "Suppression List"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1806,6 +2010,21 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
 #: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_tree
 msgid "Sync SendGrid API"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__terminal_at
+msgid "Terminal At"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.res_config_settings_view_form
+msgid "Terminal Queue Retention"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_res_config_settings__queue_retention_days
+msgid "Terminal Queue Retention (days)"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -1984,6 +2203,12 @@ msgid ""
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
+#. odoo-python
+#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
+msgid "The scheduled message has no cancellable provider batch."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
 #: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_google_sheet_source_positive_sync_interval
 msgid "The synchronization interval must be greater than zero."
 msgstr ""
@@ -1999,6 +2224,11 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_mail_event_event_key_unique
 msgid "This SendGrid event has already been processed."
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.constraint,message:bhs_sendgrid_mailer.constraint_bhsoft_email_suppression_normalized_email_unique
+msgid "This email address already exists in the suppression list."
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -2068,9 +2298,13 @@ msgid "Unknown"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
-#. odoo-python
-#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
-msgid "Unknown time"
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_email_suppression__reason__unsubscribe
+msgid "Unsubscribe"
+msgstr ""
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.model.fields.selection,name:bhs_sendgrid_mailer.selection__bhsoft_mail_queue__status__unsubscribed
+msgid "Unsubscribed"
 msgstr ""
 
 #. module: bhs_sendgrid_mailer
@@ -2122,7 +2356,6 @@ msgstr ""
 
 #. module: bhs_sendgrid_mailer
 #: model:ir.model.fields,field_description:bhs_sendgrid_mailer.field_bhsoft_mail_queue__webhook_log
-#: model_terms:ir.ui.view,arch_db:bhs_sendgrid_mailer.view_bhsoft_mail_queue_form
 msgid "Webhook History"
 msgstr ""
 
@@ -2150,11 +2383,5 @@ msgstr ""
 #. module: bhs_sendgrid_mailer
 #. odoo-python
 #: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
-msgid "[%(time)s] %(source)s event: %(event)s"
-msgstr ""
-
-#. module: bhs_sendgrid_mailer
-#. odoo-python
-#: code:addons/bhs_sendgrid_mailer/models/mail_queue.py:0
-msgid "[%(time)s] %(source)s event: %(event)s - Reason: %(reason)s"
+msgid "[Archived email body]"
 msgstr ""

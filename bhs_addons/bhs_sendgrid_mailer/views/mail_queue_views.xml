@@ -4,7 +4,7 @@
         <field name="name">bhsoft.mail.queue.tree</field>
         <field name="model">bhsoft.mail.queue</field>
         <field name="arch" type="xml">
-            <list decoration-info="status in ('processing', 'queued')" decoration-success="status in ('sent', 'delivered', 'opened', 'clicked')" decoration-danger="status in ('failed', 'unknown', 'bounced', 'dropped', 'spamreport')" decoration-muted="status in ('duplicate', 'skipped', 'cancelled')">
+            <list decoration-info="status in ('processing', 'queued')" decoration-success="status in ('sent', 'delivered', 'opened', 'clicked')" decoration-danger="status in ('failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'unsubscribed')" decoration-muted="status in ('duplicate', 'skipped', 'cancelled')">
                 <header>
                     <button name="action_send_now" string="Send Now" type="object" class="btn-primary"/>
                     <button name="action_cancel_scheduled" string="Cancel Scheduled" type="object" class="btn-secondary"/>
@@ -18,7 +18,7 @@
                 <field name="status" widget="badge"
                        decoration-info="status in ('processing', 'queued')"
                        decoration-success="status in ('sent', 'delivered', 'opened', 'clicked')"
-                       decoration-danger="status in ('failed', 'unknown', 'bounced', 'dropped', 'spamreport')"
+                       decoration-danger="status in ('failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'unsubscribed')"
                        decoration-muted="status in ('duplicate', 'skipped', 'cancelled')"/>
                 <field name="source_row_number" optional="hide"/>
                 <field name="import_batch_id" optional="hide"/>
@@ -68,6 +68,7 @@
                             <field name="mail_id"/>
                             <field name="sendgrid_msg_id"/>
                             <field name="sendgrid_batch_id"/>
+                            <field name="suppression_id"/>
                         </group>
                     </group>
                     <group string="Cancellation" invisible="status != 'cancelled' and not cancel_error">
@@ -117,11 +118,18 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Error Details" invisible="status not in ('failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'duplicate', 'skipped')">
+                        <page string="Error Details" invisible="status not in ('failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'unsubscribed', 'duplicate', 'skipped')">
                             <field name="error_message"/>
                         </page>
-                        <page string="Webhook History">
-                            <field name="webhook_log"/>
+                        <page string="SendGrid Events">
+                            <field name="event_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="event_time"/>
+                                    <field name="event_type"/>
+                                    <field name="source"/>
+                                    <field name="reason"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="API Sync History">
                             <field name="api_sync_log"/>
@@ -150,7 +158,7 @@
                 <filter string="Source Conflicts" name="source_conflicts" domain="[('source_conflict', '=', True)]"/>
                 <filter string="Missing From Source" name="source_missing" domain="[('source_missing', '=', True)]"/>
                 <filter string="Sent / Engaged" name="success" domain="[('status', 'in', ('sent', 'delivered', 'opened', 'clicked'))]"/>
-                <filter string="Failed / Review" name="failed" domain="[('status', 'in', ('failed', 'unknown', 'bounced', 'dropped', 'spamreport'))]"/>
+                <filter string="Failed / Review" name="failed" domain="[('status', 'in', ('failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'unsubscribed'))]"/>
                 <filter string="Duplicate / Skipped" name="duplicate" domain="[('status', 'in', ('duplicate', 'skipped'))]"/>
                 <filter string="Cancelled" name="cancelled" domain="[('status', '=', 'cancelled')]"/>
                 <separator/>
@@ -173,7 +181,7 @@
         <field name="name">Sending History</field>
         <field name="res_model">bhsoft.mail.queue</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('status', 'in', ('sent', 'delivered', 'opened', 'clicked', 'failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'cancelled'))]</field>
+        <field name="domain">[('status', 'in', ('sent', 'delivered', 'opened', 'clicked', 'failed', 'unknown', 'bounced', 'dropped', 'spamreport', 'unsubscribed', 'cancelled'))]</field>
         <field name="search_view_id" ref="view_bhsoft_mail_queue_search"/>
     </record>
 

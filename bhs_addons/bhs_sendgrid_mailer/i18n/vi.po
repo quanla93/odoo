@@ -1875,3 +1875,68 @@ msgstr "Không thể kết nối tới SendGrid: %(error)s"
 #: code:addons/bhs_sendgrid_mailer/models/res_config_settings.py:0
 msgid "SendGrid returned an invalid response."
 msgstr "SendGrid trả về phản hồi không hợp lệ."
+
+#. module: bhs_sendgrid_mailer
+msgid "Active suppression email addresses block queue processing. Use 0 to disable cleanup."
+msgstr "Các địa chỉ email đang bị chặn sẽ không được xử lý trong hàng đợi. Dùng 0 để tắt dọn dữ liệu."
+
+#. module: bhs_sendgrid_mailer
+msgid "Compacted At"
+msgstr "Thời điểm rút gọn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Data Retention"
+msgstr "Lưu giữ dữ liệu"
+
+#. module: bhs_sendgrid_mailer
+msgid "Event and Log Retention (days)"
+msgstr "Thời gian lưu sự kiện và nhật ký (ngày)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Row Audit Retention"
+msgstr "Lưu nhật ký dòng Google Sheet"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Row Audit Retention (days)"
+msgstr "Thời gian lưu nhật ký dòng Google Sheet (ngày)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Run Summary Retention"
+msgstr "Lưu tóm tắt phiên Google Sheet"
+
+#. module: bhs_sendgrid_mailer
+msgid "Sheet Run Summary Retention (days)"
+msgstr "Thời gian lưu tóm tắt phiên Google Sheet (ngày)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Hard Bounce"
+msgstr "Bounce vĩnh viễn"
+
+#. module: bhs_sendgrid_mailer
+msgid "Manual Block"
+msgstr "Chặn thủ công"
+
+#. module: bhs_sendgrid_mailer
+msgid "Suppression"
+msgstr "Chặn gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Suppression List"
+msgstr "Danh sách chặn gửi"
+
+#. module: bhs_sendgrid_mailer
+msgid "Terminal Queue Retention (days)"
+msgstr "Thời gian lưu hàng đợi đã kết thúc (ngày)"
+
+#. module: bhs_sendgrid_mailer
+msgid "Unsubscribe"
+msgstr "Hủy đăng ký"
+
+#. module: bhs_sendgrid_mailer
+msgid "Unsubscribed"
+msgstr "Đã hủy đăng ký"
+
+#. module: bhs_sendgrid_mailer
+#: model:ir.module.module,description:base.module_bhs_sendgrid_mailer
+msgid "Import and send email with suppression, provider tracking, and bounded data retention."
+msgstr "Nhập và gửi email với danh sách chặn, theo dõi nhà cung cấp và chính sách lưu giữ dữ liệu có giới hạn."

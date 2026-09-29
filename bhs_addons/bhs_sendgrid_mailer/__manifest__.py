@@ -1,7 +1,8 @@
 {
     'name': 'BHSoft SendGrid Mailer',
-    'version': '20.0.1.1.0',
+    'version': '20.0.1.2.0',
     'summary': 'Manage a bulk email queue through SendGrid with randomized delays',
+    'description': 'Import and send email with suppression, provider tracking, and bounded data retention.',
     'author': 'BHSoft',
     'website': 'https://github.com/quanla93/odoo',
     'category': 'Marketing',
@@ -17,6 +18,7 @@
     'data': [
         'security/ir.access.csv',
         'data/cron_jobs.xml',
+        'views/email_suppression_views.xml',
         'views/mail_queue_views.xml',
         'views/google_sheet_source_views.xml',
         'views/google_sheet_sync_run_views.xml',

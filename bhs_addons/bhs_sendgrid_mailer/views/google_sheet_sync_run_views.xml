@@ -14,6 +14,7 @@
                 <field name="updated_count"/>
                 <field name="unchanged_count" optional="hide"/>
                 <field name="duplicate_count"/>
+                <field name="skipped_count"/>
                 <field name="conflict_count"/>
                 <field name="error_count"/>
             </list>
@@ -39,6 +40,7 @@
                             <field name="updated_count"/>
                             <field name="unchanged_count"/>
                             <field name="duplicate_count"/>
+                            <field name="skipped_count"/>
                             <field name="conflict_count"/>
                             <field name="error_count"/>
                         </group>

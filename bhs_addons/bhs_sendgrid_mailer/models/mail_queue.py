@@ -9,6 +9,10 @@ import calendar
 
 MAIL_BATCH_LOCK_NAMESPACE = 4_273_052
 MAIL_BATCH_LOCK_KEY = 1
+TERMINAL_STATUSES = (
+    'sent', 'delivered', 'opened', 'clicked', 'failed', 'bounced', 'dropped',
+    'spamreport', 'unsubscribed', 'cancelled', 'duplicate', 'skipped',
+)
 
 
 class BhsoftMailQueue(models.Model):
@@ -37,6 +41,7 @@ class BhsoftMailQueue(models.Model):
         ('bounced', 'Bounce'),
         ('dropped', 'Dropped'),
         ('spamreport', 'Spam Report'),
+        ('unsubscribed', 'Unsubscribed'),
         ('cancelled', 'Cancelled'),
         ('duplicate', 'Duplicate / Skipped'),
         ('skipped', 'Skipped'),
@@ -46,6 +51,10 @@ class BhsoftMailQueue(models.Model):
     source_row_number = fields.Integer(string='Excel Row', readonly=True)
     import_batch_id = fields.Char(string='Import Batch ID', readonly=True, index=True)
     duplicate_of_id = fields.Many2one('bhsoft.mail.queue', string='Duplicate Of', readonly=True, index=True)
+    suppression_id = fields.Many2one(
+        'bhsoft.email.suppression', string='Suppression', readonly=True,
+        ondelete='restrict', index=True,
+    )
 
     sheet_source_id = fields.Many2one(
         'bhsoft.google.sheet.source', string='Google Sheet Source', readonly=True,
@@ -94,6 +103,11 @@ class BhsoftMailQueue(models.Model):
     last_sendgrid_event = fields.Char(string='Last SendGrid Event', readonly=True, index=True)
     last_sendgrid_event_time = fields.Datetime(string='Last Event Time', readonly=True)
     last_sendgrid_sync_time = fields.Datetime(string='Last API Sync', readonly=True)
+    terminal_at = fields.Datetime(string='Terminal At', readonly=True, index=True)
+    compacted_at = fields.Datetime(string='Compacted At', readonly=True, index=True)
+    event_ids = fields.One2many(
+        'bhsoft.mail.event', 'queue_id', string='SendGrid Events', readonly=True,
+    )
 
     @api.model
     def _normalize_email(self, email):
@@ -113,6 +127,8 @@ class BhsoftMailQueue(models.Model):
             if email and not self._is_valid_email(email):
                 vals['status'] = 'failed'
                 vals['error_message'] = _('Invalid email format (Spam/Invalid)')
+            if vals.get('status') in TERMINAL_STATUSES and 'terminal_at' not in vals:
+                vals['terminal_at'] = fields.Datetime.now()
         return super().create(vals_list)
 
     def write(self, vals):
@@ -122,6 +138,10 @@ class BhsoftMailQueue(models.Model):
             if email and not self._is_valid_email(email):
                 vals['status'] = 'failed'
                 vals['error_message'] = _('Invalid email format (Spam/Invalid)')
+        if vals.get('status') in TERMINAL_STATUSES and 'terminal_at' not in vals:
+            vals['terminal_at'] = fields.Datetime.now()
+        elif vals.get('status') in ('none', 'processing', 'queued'):
+            vals.setdefault('terminal_at', False)
         return super().write(vals)
 
     def action_retry(self):
@@ -280,28 +300,31 @@ class BhsoftMailQueue(models.Model):
         }
 
     def action_sync_status(self):
-        """Đồng bộ trạng thái thực tế từ mail.mail của Odoo hoặc thời gian hẹn giờ của SendGrid."""
+        """Synchronize scheduled SendGrid messages and Odoo mail records."""
         current_time = fields.Datetime.now()
         for record in self:
-            if not record.mail_id:
-                continue
-
-            if record.scheduled_send_time and record.status in ('queued', 'processing') and record.mail_id.state == 'sent':
-                if current_time >= record.scheduled_send_time:
+            if record.scheduled_send_time and record.status in ('queued', 'processing'):
+                sendgrid_submission = bool(record.sendgrid_msg_id or record.sendgrid_batch_id)
+                odoo_submission = record.mail_id and record.mail_id.state == 'sent'
+                if (sendgrid_submission or odoo_submission) and current_time >= record.scheduled_send_time:
                     record.write({
                         'status': 'sent',
                         'actual_sent_time': record.scheduled_send_time,
+                        'terminal_at': record.terminal_at or current_time,
                     })
+                    continue
 
-            elif record.mail_id.state in ('sent', 'exception') and record.status in ('queued', 'processing'):
+            if record.mail_id and record.mail_id.state in ('sent', 'exception') and record.status in ('queued', 'processing'):
                 if record.mail_id.state == 'sent' and current_time >= (record.scheduled_send_time or current_time):
                     record.write({
                         'status': 'sent',
                         'actual_sent_time': current_time,
+                        'terminal_at': record.terminal_at or current_time,
                     })
                 elif record.mail_id.state == 'exception':
                     record.write({
                         'status': 'failed',
+                        'terminal_at': record.terminal_at or current_time,
                         'error_message': record.mail_id.failure_reason or _('Failed to send through Odoo SMTP'),
                     })
 
@@ -372,12 +395,27 @@ class BhsoftMailQueue(models.Model):
             schedule_cursor or fields.Datetime.now(),
         )
 
+        Suppression = self.env['bhsoft.email.suppression'].sudo()
         for record in records:
             email = record.email_to and record.email_to.strip() or ''
             if not self._is_valid_email(email):
                 record.write({
                     'status': 'failed',
+                    'terminal_at': fields.Datetime.now(),
                     'error_message': _('Pre-send error: Invalid email format (Spam/Invalid)')
+                })
+                continue
+
+            suppression = Suppression.active_for_email(record.normalized_email or email)
+            if suppression:
+                record.write({
+                    'status': 'skipped',
+                    'suppression_id': suppression.id,
+                    'terminal_at': fields.Datetime.now(),
+                    'error_message': _(
+                        'Skipped because this recipient is suppressed: %(reason)s',
+                        reason=suppression.reason,
+                    ),
                 })
                 continue
 
@@ -404,13 +442,11 @@ class BhsoftMailQueue(models.Model):
                 if api_key:
                     batch_id = self._create_sendgrid_batch_id(api_key)
                     msg_id = self._send_via_sendgrid_api(record, api_key, sender_email, scheduled_date, batch_id)
-                    mail_values['state'] = 'sent'
-                    mail_record = self.env['mail.mail'].sudo().create(mail_values)
 
                     record.write({
                         'status': 'queued',
                         'scheduled_send_time': scheduled_date,
-                        'mail_id': mail_record.id,
+                        'mail_id': False,
                         'sendgrid_msg_id': msg_id,
                         'sendgrid_batch_id': batch_id,
                         'sendgrid_status': 'queued',
@@ -501,9 +537,20 @@ class BhsoftMailQueue(models.Model):
             ('source_conflict', '!=', True),
         ])
         result = self._dispatch_mail_batch(record_ids=requested_ids)
-        submitted_count = len(result['records'])
-        deferred_count = eligible_count - submitted_count
-        skipped_count = len(self) - eligible_count
+        processed = result['records']
+        submitted_count = len(processed.filtered(
+            lambda record: record.status in ('queued', 'unknown')
+        ))
+        claim_skipped_count = self.search_count([
+            ('id', 'in', requested_ids),
+            ('status', '=', 'skipped'),
+            ('suppression_id.active', '=', True),
+        ])
+        processed_unsent_count = len(processed) - submitted_count
+        deferred_count = max(
+            eligible_count - len(processed) - claim_skipped_count, 0,
+        )
+        skipped_count = len(self) - eligible_count + processed_unsent_count
 
         if result['reason'] == 'busy':
             message = _(
@@ -539,6 +586,30 @@ class BhsoftMailQueue(models.Model):
         limit = limit or config.get_int('bhs_sendgrid_mailer.batch_size', 30)
         if limit <= 0:
             return self.browse()
+
+        self.env.cr.execute("""
+            UPDATE bhsoft_mail_queue AS queue
+               SET status = 'skipped',
+                   suppression_id = suppression.id,
+                   terminal_at = COALESCE(queue.terminal_at, NOW()),
+                   error_message = %s,
+                   write_date = NOW(),
+                   write_uid = %s
+              FROM bhsoft_email_suppression AS suppression
+             WHERE queue.status = 'none'
+               AND suppression.active IS TRUE
+               AND suppression.normalized_email = queue.normalized_email
+         RETURNING queue.id
+        """, [
+            _('Skipped because this recipient is suppressed.'),
+            self.env.uid,
+        ])
+        suppressed_ids = [row[0] for row in self.env.cr.fetchall()]
+        if suppressed_ids:
+            self.browse(suppressed_ids).invalidate_recordset([
+                'status', 'suppression_id', 'terminal_at', 'error_message',
+                'write_date', 'write_uid',
+            ], flush=False)
 
         id_filter = ''
         params = [limit]
@@ -610,15 +681,11 @@ class BhsoftMailQueue(models.Model):
             'bounce': 'bounced',
             'dropped': 'dropped',
             'spamreport': 'spamreport',
+            'unsubscribe': 'unsubscribed',
+            'group_unsubscribe': 'unsubscribed',
             'deferred': 'queued',
         }
         return mapping.get(event_type, self.status)
-
-    def _append_log(self, field_name, line):
-        for record in self:
-            current_log = record[field_name] or ''
-            lines = (current_log.splitlines() + [line])[-200:]
-            record.write({field_name: '\n'.join(lines)})
 
     def _apply_sendgrid_event(self, event_type, event_data, source='webhook'):
         event_type = (event_type or '').lower()
@@ -628,48 +695,52 @@ class BhsoftMailQueue(models.Model):
             'none': 0, 'processing': 1, 'queued': 2, 'sent': 3,
             'delivered': 4, 'opened': 5, 'clicked': 6,
         }
-        log_field = 'api_sync_log' if source == 'api' else 'webhook_log'
-
         for record in self:
-            if not self.env['bhsoft.mail.event'].sudo().record_once(
+            event_recorded = self.env['bhsoft.mail.event'].sudo().record_once(
                 record, event_type, event_data or {}, source, event_time,
-            ):
+            )
+            suppression = self.env['bhsoft.email.suppression'].sudo().browse()
+            if event_recorded:
+                suppression = self.env['bhsoft.email.suppression'].sudo().upsert_from_sendgrid_event(
+                    (event_data or {}).get('email') or record.normalized_email or record.email_to,
+                    event_type,
+                    event_data or {},
+                )
+                if suppression and record.suppression_id != suppression:
+                    record.write({'suppression_id': suppression.id})
+            if not event_recorded:
                 continue
             status = record._status_from_sendgrid_event(event_type)
-            log_time = fields.Datetime.to_string(event_time) if event_time else _('Unknown time')
-            if reason:
-                log_line = _(
-                    '[%(time)s] %(source)s event: %(event)s - Reason: %(reason)s',
-                    time=log_time,
-                    source=source.upper(),
-                    event=event_type.upper(),
-                    reason=reason,
-                )
-            else:
-                log_line = _(
-                    '[%(time)s] %(source)s event: %(event)s',
-                    time=log_time,
-                    source=source.upper(),
-                    event=event_type.upper(),
-                )
-
-            vals = {
-                'sendgrid_status': event_type,
-                'last_sendgrid_event': event_type,
-            }
+            vals = {}
             is_newer = not record.last_sendgrid_event_time or not event_time or event_time >= record.last_sendgrid_event_time
-            terminal_failure = event_type in ('bounce', 'dropped', 'spamreport')
+            if is_newer:
+                vals.update({
+                    'sendgrid_status': event_type,
+                    'last_sendgrid_event': event_type,
+                })
+            terminal_failure = event_type in (
+                'bounce', 'dropped', 'spamreport', 'unsubscribe', 'group_unsubscribe',
+            )
             if event_time and is_newer:
                 vals['last_sendgrid_event_time'] = event_time
-            preserve_cancelled = record.status == 'cancelled'
-            if status and not preserve_cancelled and (
+            preserve_terminal_failure = record.status in (
+                'failed', 'bounced', 'dropped', 'spamreport', 'unsubscribed',
+                'cancelled', 'skipped',
+            ) and (
+                not terminal_failure or record.status in ('cancelled', 'skipped')
+            )
+            if status and not preserve_terminal_failure and (
                 terminal_failure
                 or state_rank.get(status, -1) >= state_rank.get(record.status, -1)
             ) and is_newer:
                 vals['status'] = status
-            if event_type == 'delivered' and event_time and not preserve_cancelled:
+                if status in ('processing', 'queued'):
+                    vals['terminal_at'] = False
+            if event_type == 'delivered' and event_time and not preserve_terminal_failure:
                 vals['actual_sent_time'] = event_time
-            if event_type in ('bounce', 'dropped', 'spamreport') and not preserve_cancelled:
+            if event_type in (
+                'bounce', 'dropped', 'spamreport', 'unsubscribe', 'group_unsubscribe',
+            ) and not preserve_terminal_failure:
                 if reason:
                     vals['error_message'] = _(
                         'SendGrid event: %(event)s\nReason: %(reason)s',
@@ -681,11 +752,14 @@ class BhsoftMailQueue(models.Model):
                         'SendGrid event: %(event)s',
                         event=event_type.upper(),
                     )
+            if status in (
+                'delivered', 'opened', 'clicked', 'failed', 'bounced', 'dropped',
+                'spamreport', 'unsubscribed', 'cancelled', 'skipped',
+            ) and is_newer:
+                vals['terminal_at'] = record.terminal_at or event_time or fields.Datetime.now()
             if source == 'api':
                 vals['last_sendgrid_sync_time'] = fields.Datetime.now()
 
-            current_log = record[log_field] or ''
-            vals[log_field] = '\n'.join((current_log.splitlines() + [log_line])[-200:])
             record.write(vals)
 
     def action_sync_sendgrid_activity(self):
@@ -794,3 +868,115 @@ class BhsoftMailQueue(models.Model):
                 'api_sync_log': '\n'.join((current_log.splitlines() + [log_line])[-200:]),
                 'last_sendgrid_sync_time': fields.Datetime.now(),
             })
+
+    @api.model
+    def _cron_enforce_email_suppressions(self):
+        config = self.env['ir.config_parameter'].sudo()
+        api_key = config.get_str('bhs_sendgrid_mailer.api_key', '').strip()
+        now = fields.Datetime.now()
+        records = self.search([
+            ('status', 'in', ('queued', 'unknown')),
+            ('suppression_id.active', '=', True),
+            '|',
+            ('scheduled_send_time', '>', now),
+            '&',
+            ('mail_id', '!=', False),
+            ('mail_id.state', 'not in', ('sent', 'cancel', 'exception')),
+        ], order='id asc', limit=500)
+        for record in records:
+            try:
+                if record.sendgrid_batch_id:
+                    if not api_key:
+                        raise Exception(_('SendGrid API Key is not configured.'))
+                    record._cancel_sendgrid_batch(api_key, record.sendgrid_batch_id)
+                elif record.mail_id:
+                    record.mail_id.sudo().write({'state': 'cancel'})
+                else:
+                    raise Exception(_(
+                        'The scheduled message has no cancellable provider batch.'
+                    ))
+                record.write({
+                    'status': 'skipped',
+                    'sendgrid_status': 'cancelled',
+                    'last_sendgrid_event': 'cancelled',
+                    'last_sendgrid_event_time': now,
+                    'cancelled_at': now,
+                    'terminal_at': record.terminal_at or now,
+                    'cancel_error': False,
+                    'error_message': _(
+                        'Cancelled because this recipient is suppressed.'
+                    ),
+                })
+            except Exception as error:
+                record.write({'cancel_error': str(error)})
+
+    @api.autovacuum
+    def _gc_mailer_data(self):
+        config = self.env['ir.config_parameter'].sudo()
+        queue_days = config.get_int('bhs_sendgrid_mailer.queue_retention_days', 90)
+        log_days = config.get_int('bhs_sendgrid_mailer.event_retention_days', 30)
+        terminal_statuses = (
+            'sent', 'delivered', 'opened', 'clicked', 'failed', 'bounced',
+            'dropped', 'spamreport', 'unsubscribed', 'cancelled', 'duplicate',
+            'skipped',
+        )
+        now = fields.Datetime.now()
+
+        if log_days > 0:
+            log_deadline = now - timedelta(days=log_days)
+            events = self.env['bhsoft.mail.event'].sudo().search([
+                ('create_date', '<=', log_deadline),
+            ], order='id asc', limit=10_000)
+            event_count = len(events)
+            events.with_context(prefetch_fields=False).unlink()
+            logged = self.search([
+                ('write_date', '<=', log_deadline),
+                '|', ('webhook_log', '!=', False), ('api_sync_log', '!=', False),
+            ], order='id asc', limit=10_000)
+            logged_count = len(logged)
+            if logged:
+                logged.write({'webhook_log': False, 'api_sync_log': False})
+        else:
+            event_count = logged_count = 0
+
+        if queue_days <= 0:
+            return event_count + logged_count, max(
+                event_count == 10_000, logged_count == 10_000,
+            )
+        queue_deadline = now - timedelta(days=queue_days)
+        old_records = self.search([
+            ('status', 'in', terminal_statuses),
+            ('terminal_at', '!=', False),
+            ('terminal_at', '<=', queue_deadline),
+            '|', ('sheet_source_id', '=', False), ('compacted_at', '=', False),
+        ], order='id asc', limit=10_000)
+        sheet_records = old_records.filtered('sheet_source_id')
+        removable = old_records - sheet_records
+
+        linked_mails = old_records.mapped('mail_id').sudo()
+        if linked_mails:
+            old_records.write({'mail_id': False})
+        if linked_mails:
+            linked_mails.with_context(prefetch_fields=False).unlink()
+        if sheet_records:
+            sheet_records.write({
+                'name': _('Archived recipient'),
+                'company_name': False,
+                'subject': _('[Archived email subject]'),
+                'body_html': _('[Archived email body]'),
+                'hubspot_id': False,
+                'linkedin_url': False,
+                'company_website': False,
+                'source_conflict_message': False,
+                'webhook_log': False,
+                'api_sync_log': False,
+                'mail_id': False,
+                'compacted_at': now,
+            })
+        if removable:
+            removable.with_context(prefetch_fields=False).unlink()
+        return event_count + logged_count + len(old_records), max(
+            event_count == 10_000,
+            logged_count == 10_000,
+            len(old_records) == 10_000,
+        )

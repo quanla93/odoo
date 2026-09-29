@@ -115,6 +115,23 @@ class MailQueueImportWizard(models.TransientModel):
 
             vals_list.append(vals)
 
+        suppressions = self.env['bhsoft.email.suppression'].sudo().active_by_email(
+            [vals.get('email_to') for vals in vals_list]
+        )
+        for vals in vals_list:
+            suppression = suppressions.get(Queue._normalize_email(vals.get('email_to')))
+            if suppression:
+                vals.update({
+                    'status': 'skipped',
+                    'duplicate_of_id': False,
+                    'suppression_id': suppression.id,
+                    'terminal_at': fields.Datetime.now(),
+                    'error_message': _(
+                        'Skipped because this recipient is suppressed: %(reason)s',
+                        reason=suppression.reason,
+                    ),
+                })
+
         created_records = Queue.create(vals_list) if vals_list else Queue.browse()
 
         if dedupe_mode == 'batch_email':
