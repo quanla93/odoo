@@ -29,6 +29,12 @@
               action="action_bhsoft_mail_queue_all"
               sequence="4"/>
 
+    <menuitem id="menu_bhsoft_email_suppressions"
+              name="Suppression List"
+              parent="menu_bhsoft_mail_root"
+              action="action_bhsoft_email_suppressions"
+              sequence="8"/>
+
     <menuitem id="menu_bhsoft_google_sheet_sources"
               name="Google Sheet Sources"
               parent="menu_bhsoft_mail_root"

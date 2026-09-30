@@ -228,6 +228,113 @@ class TestGoogleSheetSync(TransactionCase):
         self.assertTrue(queue.source_conflict)
         self.assertEqual(queue.body_html, 'Body')
 
+    def test_suppressed_row_is_created_as_skipped(self):
+        suppression = self.env['bhsoft.email.suppression'].create({
+            'normalized_email': ' ALICE@EXAMPLE.COM ',
+            'reason': 'manual',
+        })
+
+        run, _client = self._sync([
+            ['row-1', 'Alice', 'alice@example.com', 'Hello', 'Body', '', '', 'Acme', ''],
+        ])
+
+        queue = self.env['bhsoft.mail.queue'].search([
+            ('sheet_source_id', '=', self.source.id),
+        ])
+        self.assertEqual(run.state, 'success')
+        self.assertEqual(run.skipped_count, 1)
+        self.assertEqual(run.line_ids.result, 'skipped')
+        self.assertEqual(queue.status, 'skipped')
+        self.assertEqual(queue.suppression_id, suppression)
+        self.assertTrue(queue.terminal_at)
+
+    def test_repeated_suppressed_sync_preserves_terminal_and_compacted_data(self):
+        suppression = self.env['bhsoft.email.suppression'].create({
+            'normalized_email': 'alice@example.com',
+            'reason': 'manual',
+        })
+        row = [
+            'row-1', 'Alice', 'alice@example.com', 'Hello',
+            'Original body', 'hubspot-1', 'https://linkedin.test/alice',
+            'Acme', 'https://acme.test',
+        ]
+        self._sync([row])
+        queue = self.env['bhsoft.mail.queue'].search([
+            ('sheet_source_id', '=', self.source.id),
+        ])
+        original_terminal_at = queue.terminal_at
+        compacted_at = fields.Datetime.now()
+        queue.write({
+            'name': 'Archived recipient',
+            'subject': '[Archived email subject]',
+            'body_html': '[Archived email body]',
+            'hubspot_id': False,
+            'linkedin_url': False,
+            'company_name': False,
+            'company_website': False,
+            'compacted_at': compacted_at,
+        })
+        row[3] = 'Changed subject'
+        row[4] = 'Changed body'
+
+        run, _client = self._sync([row])
+
+        self.assertEqual(run.skipped_count, 1)
+        self.assertEqual(queue.status, 'skipped')
+        self.assertEqual(queue.suppression_id, suppression)
+        self.assertEqual(queue.terminal_at, original_terminal_at)
+        self.assertEqual(queue.compacted_at, compacted_at)
+        self.assertEqual(queue.subject, '[Archived email subject]')
+        self.assertEqual(queue.body_html, '[Archived email body]')
+        self.assertFalse(queue.hubspot_id)
+        self.assertFalse(queue.linkedin_url)
+        self.assertFalse(queue.company_name)
+        self.assertFalse(queue.company_website)
+
+    def test_inactive_suppression_reopens_only_its_skipped_row(self):
+        suppression = self.env['bhsoft.email.suppression'].create({
+            'normalized_email': 'alice@example.com',
+            'reason': 'manual',
+        })
+        row = ['row-1', 'Alice', 'alice@example.com', 'Hello', 'Body', '', '', 'Acme', '']
+        self._sync([row])
+        queue = self.env['bhsoft.mail.queue'].search([
+            ('sheet_source_id', '=', self.source.id),
+        ])
+        queue.compacted_at = fields.Datetime.now()
+        suppression.active = False
+
+        run, _client = self._sync([row])
+
+        self.assertEqual(run.updated_count, 1)
+        self.assertEqual(queue.status, 'none')
+        self.assertFalse(queue.suppression_id)
+        self.assertFalse(queue.terminal_at)
+        self.assertFalse(queue.compacted_at)
+
+    def test_corrected_email_reopens_suppression_skipped_row(self):
+        self.env['bhsoft.email.suppression'].create({
+            'normalized_email': 'blocked@example.com',
+            'reason': 'manual',
+        })
+        row = [
+            'row-1', 'Alice', 'blocked@example.com', 'Hello',
+            'Body', '', '', 'Acme', '',
+        ]
+        self._sync([row])
+        queue = self.env['bhsoft.mail.queue'].search([
+            ('sheet_source_id', '=', self.source.id),
+        ])
+        row[2] = 'allowed@example.com'
+
+        run, _client = self._sync([row])
+
+        self.assertEqual(run.updated_count, 1)
+        self.assertEqual(queue.status, 'none')
+        self.assertEqual(queue.normalized_email, 'allowed@example.com')
+        self.assertFalse(queue.suppression_id)
+        self.assertFalse(queue.terminal_at)
+
     def test_same_email_and_content_is_duplicate(self):
         rows = [
             ['row-1', 'Alice', 'alice@example.com', 'Hello', 'Body', '', '', 'Acme', ''],

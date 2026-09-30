@@ -32,6 +32,46 @@ class TestResConfigSettings(TransactionCase):
         defaults.update(values)
         return self.env['res.config.settings'].create(defaults)
 
+    def test_retention_defaults(self):
+        values = self.env['res.config.settings'].get_values()
+
+        self.assertEqual(values['queue_retention_days'], 90)
+        self.assertEqual(values['event_retention_days'], 30)
+        self.assertEqual(values['sync_line_retention_days'], 30)
+        self.assertEqual(values['sync_run_retention_days'], 365)
+
+    def test_negative_retention_is_rejected(self):
+        for field_name in (
+            'queue_retention_days',
+            'event_retention_days',
+            'sync_line_retention_days',
+            'sync_run_retention_days',
+        ):
+            with self.subTest(field_name=field_name), self.assertRaises(ValidationError):
+                self._settings(**{field_name: -1}).set_values()
+
+    def test_retention_values_round_trip(self):
+        expected = {
+            'queue_retention_days': 120,
+            'event_retention_days': 45,
+            'sync_line_retention_days': 60,
+            'sync_run_retention_days': 730,
+        }
+
+        self._settings(**expected).set_values()
+
+        values = self.env['res.config.settings'].get_values()
+        for field_name, expected_value in expected.items():
+            self.assertEqual(values[field_name], expected_value)
+
+    def test_zero_retention_is_allowed(self):
+        self._settings(
+            queue_retention_days=0,
+            event_retention_days=0,
+            sync_line_retention_days=0,
+            sync_run_retention_days=0,
+        ).set_values()
+
     def test_stored_credentials_are_not_loaded_into_settings(self):
         self.config.set_str('bhs_sendgrid_mailer.api_key', 'secret-api-key')
         self.config.set_str(

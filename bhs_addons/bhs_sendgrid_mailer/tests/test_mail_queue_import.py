@@ -62,6 +62,22 @@ class TestMailQueueImport(TransactionCase):
         self.assertEqual(action['views'], [(False, 'list'), (False, 'form')])
         self.assertEqual(action['res_model'], 'bhsoft.mail.queue')
 
+    def test_suppression_takes_precedence_over_import_deduplication(self):
+        suppression = self.env['bhsoft.email.suppression'].create({
+            'normalized_email': ' ALICE@EXAMPLE.COM ',
+            'reason': 'manual',
+        })
+
+        _action, records = self._import_rows([
+            ['Alice', 'Alice@example.com', 'First subject', 'First body', 'Acme'],
+            ['Alice 2', 'alice@example.com', 'Second subject', 'Second body', 'Acme'],
+        ])
+
+        self.assertEqual(records.mapped('status'), ['skipped', 'skipped'])
+        self.assertEqual(records.mapped('suppression_id'), suppression)
+        self.assertFalse(records.mapped('duplicate_of_id'))
+        self.assertTrue(all(records.mapped('terminal_at')))
+
     def test_distinct_emails_remain_pending(self):
         _action, records = self._import_rows([
             ['Alice', 'alice@example.com', 'Hello', 'Body', 'Acme'],

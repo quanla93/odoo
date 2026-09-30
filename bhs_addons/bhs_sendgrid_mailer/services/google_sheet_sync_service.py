@@ -70,6 +70,7 @@ class GoogleSheetSyncService:
             'updated_count': 0,
             'unchanged_count': 0,
             'duplicate_count': 0,
+            'skipped_count': 0,
             'conflict_count': 0,
             'error_count': 0,
         }
@@ -263,6 +264,9 @@ class GoogleSheetSyncService:
     def _process_rows(self, rows, run, counters, synced_at):
         seen_row_ids = {row['row_id'] for row in rows if row['row_id']}
         seen_content = {}
+        suppressions = self.env['bhsoft.email.suppression'].sudo().active_by_email(
+            [row['email'] for row in rows if row['valid']]
+        )
         for row in rows:
             if not row['valid']:
                 continue
@@ -270,10 +274,17 @@ class GoogleSheetSyncService:
                 with self.env.cr.savepoint():
                     dedupe_key = (row['email'], row['content_hash'])
                     duplicate_queue = seen_content.get(dedupe_key)
+                    suppression = suppressions.get(row['email'])
                     result, queue, message = self._upsert_row(
-                        row, run, synced_at, duplicate_queue=duplicate_queue,
+                        row,
+                        run,
+                        synced_at,
+                        duplicate_queue=duplicate_queue,
+                        suppression=suppression,
                     )
-                    if result not in ('duplicate', 'error'):
+                    if result not in ('duplicate', 'error') and (
+                        result != 'skipped' or suppression
+                    ):
                         seen_content.setdefault(dedupe_key, queue)
                     counters[f'{result}_count'] += 1
                     self._line(run, row, result, message, queue)
@@ -289,7 +300,9 @@ class GoogleSheetSyncService:
         missing.write({'source_missing': True})
         (existing - missing).write({'source_missing': False})
 
-    def _upsert_row(self, row, run, synced_at, duplicate_queue=False):
+    def _upsert_row(
+        self, row, run, synced_at, duplicate_queue=False, suppression=False,
+    ):
         values = row['values']
         if not values['email_to']:
             raise ValueError(_('Email is required.'))
@@ -311,6 +324,15 @@ class GoogleSheetSyncService:
             ('sheet_row_id', '!=', row['row_id']),
             ('status', 'not in', ('duplicate', 'skipped')),
         ], order='id asc', limit=1)
+        suppression_values = {
+            'status': 'skipped',
+            'suppression_id': suppression.id,
+            'duplicate_of_id': False,
+            'error_message': _(
+                'Skipped because this recipient is suppressed: %(reason)s',
+                reason=suppression.reason,
+            ),
+        } if suppression else {}
         common = {
             **values,
             'sheet_source_id': self.source.id,
@@ -324,6 +346,46 @@ class GoogleSheetSyncService:
         }
 
         if queue:
+            if suppression and queue.status in ('none', 'skipped'):
+                if queue.status == 'skipped' and queue.suppression_id:
+                    sync_values = {
+                        'sheet_row_number': row['row_number'],
+                        'source_synced_at': synced_at,
+                        'sync_run_id': run.id,
+                        'source_missing': False,
+                    }
+                    if not queue.compacted_at:
+                        sync_values.update(common)
+                    queue.write({
+                        **sync_values,
+                        **suppression_values,
+                        'terminal_at': queue.terminal_at or fields.Datetime.now(),
+                    })
+                else:
+                    queue.write({
+                        **common,
+                        **suppression_values,
+                        'terminal_at': queue.terminal_at or fields.Datetime.now(),
+                    })
+                return 'skipped', queue, suppression_values['error_message']
+            if (
+                not suppression
+                and queue.suppression_id
+                and queue.status == 'skipped'
+                and (
+                    not queue.suppression_id.active
+                    or queue.normalized_email != row['email']
+                )
+            ):
+                common.update({
+                    'status': 'none',
+                    'suppression_id': False,
+                    'terminal_at': False,
+                    'compacted_at': False,
+                    'error_message': False,
+                })
+                queue.write(common)
+                return 'updated', queue, False
             if queue.source_hash == row['source_hash']:
                 queue.write({
                     'sheet_row_number': row['row_number'],
@@ -354,6 +416,10 @@ class GoogleSheetSyncService:
             queue.write(common)
             return ('duplicate' if duplicate else 'updated'), queue, False
 
+        if suppression:
+            common.update(suppression_values)
+            queue = self.Queue.create(common)
+            return 'skipped', queue, suppression_values['error_message']
         common.update({
             'status': 'duplicate' if duplicate else 'none',
             'duplicate_of_id': duplicate.id if duplicate else False,

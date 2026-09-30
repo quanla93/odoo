@@ -72,7 +72,7 @@
                             <div class="text-muted mt-2">
                                 <em>
                                     Copy the URL above and configure it in <b>SendGrid &gt; Settings &gt; Mail Settings &gt; Event Webhook</b>.<br/>
-                                    Recommended events: <b>Processed, Delivered, Open, Click, Bounced, Dropped, Spam Reports</b>.
+                                    Recommended events: <b>Processed, Delivered, Open, Click, Bounced, Dropped, Spam Reports, Unsubscribe, Group Unsubscribe</b>.
                                 </em>
                             </div>
                         </setting>
@@ -90,6 +90,21 @@
                     <block title="Import Deduplication" name="sendgrid_dedupe_config">
                         <setting string="Deduplication Mode" help="Filter duplicate recipients within the same import batch">
                             <field name="sendgrid_dedupe_mode"/>
+                        </setting>
+                    </block>
+
+                    <block title="Data Retention" name="retention_config">
+                        <setting string="Terminal Queue Retention" help="Days to keep terminal Excel queue records. Google Sheet queue records are compacted instead of deleted. Set to zero to disable.">
+                            <field name="queue_retention_days"/>
+                        </setting>
+                        <setting string="Event and Log Retention" help="Days to keep detailed SendGrid events and diagnostic text logs. Set to zero to disable.">
+                            <field name="event_retention_days"/>
+                        </setting>
+                        <setting string="Sheet Row Audit Retention" help="Days to keep individual Google Sheet synchronization row results. Set to zero to disable.">
+                            <field name="sync_line_retention_days"/>
+                        </setting>
+                        <setting string="Sheet Run Summary Retention" help="Days to keep Google Sheet synchronization summaries after row details are gone. Set to zero to disable.">
+                            <field name="sync_run_retention_days"/>
                         </setting>
                     </block>
 

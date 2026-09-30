@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bhsoft_email_suppression_list" model="ir.ui.view">
+        <field name="name">bhsoft.email.suppression.list</field>
+        <field name="model">bhsoft.email.suppression</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="not active" delete="false">
+                <field name="normalized_email"/>
+                <field name="active"/>
+                <field name="reason" widget="badge"/>
+                <field name="provider"/>
+                <field name="first_event_at"/>
+                <field name="last_event_at"/>
+                <field name="last_detail" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bhsoft_email_suppression_form" model="ir.ui.view">
+        <field name="name">bhsoft.email.suppression.form</field>
+        <field name="model">bhsoft.email.suppression</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="normalized_email" readonly="provider != 'manual'"/>
+                            <field name="active"/>
+                            <field name="reason" readonly="provider != 'manual'"/>
+                            <field name="provider"/>
+                        </group>
+                        <group>
+                            <field name="first_event_at"/>
+                            <field name="last_event_at"/>
+                            <field name="last_provider_event_id"/>
+                        </group>
+                    </group>
+                    <group string="Latest Detail">
+                        <field name="last_detail"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bhsoft_email_suppression_search" model="ir.ui.view">
+        <field name="name">bhsoft.email.suppression.search</field>
+        <field name="model">bhsoft.email.suppression</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="normalized_email"/>
+                <field name="reason"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Group by Reason" name="group_reason" context="{'group_by': 'reason'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bhsoft_email_suppressions" model="ir.actions.act_window">
+        <field name="name">Suppression List</field>
+        <field name="res_model">bhsoft.email.suppression</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_bhsoft_email_suppression_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+</odoo>
