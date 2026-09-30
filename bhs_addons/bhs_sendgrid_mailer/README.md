@@ -136,6 +136,8 @@ Version `20.0.1.2.0` includes a post-migration that creates the durable suppress
 
 Detailed upgrade, rollback, and validation instructions are available in [`docs/UPGRADE_1_2.md`](docs/UPGRADE_1_2.md).
 
+The Vietnamese administrator and operator guide is available in [`docs/USER_GUIDE_1_2_VI.md`](docs/USER_GUIDE_1_2_VI.md). It covers initial configuration, Excel imports, Google Sheets synchronization, sending, queue statuses, suppression management, retention, and troubleshooting.
+
 Migration scripts are only required by releases that explicitly document a data-model migration. They are not needed for a fresh installation.
 
 ## Configuration
